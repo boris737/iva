@@ -1,0 +1,2 @@
+date,model,prompt,seconds_or_images,cost_usd,status,request_id,file
+2026-11-24T14:45:31.856Z,higgsfield-ai/soul/v2/standard,"Raking late-afternoon light across a raw board-formed concrete wall, long soft shadow, dust in the air, quiet, no people, architectural photograph",1 img,0.0040,completed,01a20e03-ebf7-7e98-ac16-190e01d71836,"assets/generated/test-concrete-01a20e03.png"
