@@ -10,6 +10,8 @@ export type Station = {
   img?: string; video?: string; aspect?: number;
   floor?: string; floorAspect?: number; logo?: string; logoAspect?: number;
   massing?: boolean; mats?: string[]; side?: 1 | -1;
+  night?: string;                                   // the same render relit at blue hour, for the closing night
+  extras?: { img: string; video?: string; aspect: number }[];   // her other renders of the project, smaller, beside it
 };
 
 const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -86,7 +88,8 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
   // --- stations
   const GAP = 46;
   type Built = { focus: THREE.Vector3; side: number; size: number; w: number; video?: HTMLVideoElement; ink: THREE.ShaderMaterial[]; group: THREE.Group; slabMat?: THREE.MeshBasicMaterial; massing?: THREE.Group;
-    sheen?: THREE.Mesh; halo?: THREE.Mesh; pool?: THREE.Mesh; lit: number; w0?: number };
+    sheen?: THREE.Mesh; halo?: THREE.Mesh; pool?: THREE.Mesh; lit: number; w0?: number;
+    more: { mat: THREE.MeshBasicMaterial; v?: HTMLVideoElement; sheen: THREE.Mesh; mesh: THREE.Group }[]; nightMat?: THREE.MeshBasicMaterial };
   const built: Built[] = [];
   const videos: HTMLVideoElement[] = [];
 
@@ -152,7 +155,7 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
   for (let i = 0; i < stations.length; i++) {
     const s = stations[i]; const g = new THREE.Group(); scene.add(g);
     const side = s.side ?? (i % 2 ? -1 : 1);
-    const b: Built = { focus: new THREE.Vector3(), side, size: 10, w: 10, ink: [], group: g, lit: 0 };
+    const b: Built = { focus: new THREE.Vector3(), side, size: 10, w: 10, ink: [], group: g, lit: 0, more: [] };
     if (s.kind === 'arrival') {
       g.position.set(0, 0, 30); b.focus.set(0, 6, -60); b.size = 40;
     } else if (s.kind === 'close') {
@@ -168,6 +171,19 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
         if (s.floor) b.ink.push(await floorInk(g, s.floor, s.floorAspect ?? 1.4, Math.min(22, r.w * 1.25), r.w * 0.55 + 4));
         if (s.logo) b.ink.push(await floorInk(g, s.logo, s.logoAspect ?? 3, 18, 8, WARM, 0.9));
         if (s.massing) { const ms = auraMassing(); g.add(ms); b.massing = ms; }
+        if (s.night) {
+          const nt = await tex(s.night); const nm = new THREE.MeshBasicMaterial({ map: nt, transparent: true, opacity: 0, toneMapped: false, depthWrite: false });
+          const np = new THREE.Mesh(new THREE.PlaneGeometry(r.w, r.h), nm); np.position.set(0, r.h / 2 + 1.2, 0.01); g.add(np); b.nightMat = nm;
+        }
+        // her other renders of the same project stand beside it, smaller, stepping back into the dark
+        for (let e = 0; e < (s.extras ?? []).length; e++) {
+          const ex = s.extras![e]; const sg = new THREE.Group(); g.add(sg);
+          const eh = mobile ? 3.4 : 4.2, ew = eh * ex.aspect;
+          const out = side * (r.w / 2 + 1.6 + ew / 2 + e * (ew + 1.2));
+          sg.position.set(out, 0.6 + e * 0.5, -3.5 - e * 2.5); sg.rotation.y = -side * 0.35;
+          const er = await slab(sg, ex.img, ex.video, ex.aspect, eh);
+          b.more.push({ mat: er.mat, v: er.v, sheen: er.sheen, mesh: sg });
+        }
       } else if (s.kind === 'materials') {
         const ts = await Promise.all((s.mats ?? []).map(tex));
         ts.forEach((t, k) => {
@@ -256,6 +272,19 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
       if (b.pool) (b.pool.material as THREE.MeshBasicMaterial).opacity = 0.06 + 0.2 * b.lit;
       if (b.sheen) { const sw = clamp((near - 0.3) / 0.65), u = (b.sheen.material as THREE.ShaderMaterial).uniforms; u.x.value = lerp(-0.3, 1.5, sw); u.a.value = Math.sin(Math.PI * sw); }
       if (b.slabMat || b.massing) b.group.position.y = Math.sin(time * 0.55 + k * 1.7) * 0.12;
+      const lag = clamp((near - 0.25) / 0.75);
+      b.more.forEach((m, j) => {
+        const e2 = smooth(clamp(lag * 1.3 - j * 0.15));
+        m.mat.color.setScalar(0.25 + 0.75 * e2);
+        const u = (m.sheen.material as THREE.ShaderMaterial).uniforms; u.x.value = lerp(-0.3, 1.5, e2); u.a.value = Math.sin(Math.PI * e2) * 0.8;
+        m.mesh.position.y = 0.6 + j * 0.5 + Math.sin(time * 0.7 + j * 2.1 + k) * 0.1;
+        if (m.v) {
+          const want = Math.abs(Sd - k) < 0.8;
+          if (want && m.v.paused) m.v.play().then(() => { m.mat.map = (m.mat as any).__video; m.mat.needsUpdate = true; }).catch(() => {});
+          if (!want && !m.v.paused) m.v.pause();
+        }
+      });
+      if (b.nightMat) b.nightMat.opacity = smooth(clamp((Sd - (stations.length - 2.3)) / 1.1));
       if (b.video && b.slabMat) {
         const want = Math.abs(Sd - k) < 1.2;
         if (want && b.video.paused) { b.video.play().then(() => { b.slabMat!.map = (b.slabMat as any).__video; b.slabMat!.needsUpdate = true; }).catch(() => {}); }

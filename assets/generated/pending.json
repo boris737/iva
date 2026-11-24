@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "endpoint": "kling-video/v2.5-turbo/pro/image-to-video",
+    "params": {
+      "prompt": "Same auditorium, same light. Very slow steady camera drift forward down the aisle. The audience shifts slightly in their seats, stage lights warm up a little. The architecture stays exactly as in the image.",
+      "duration": 5,
+      "negative_prompt": "morphing, warping building, extra floors, new buildings, changed facade, changed furniture, cuts, shaky camera, text",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/d2f96d28-c9c7-4881-8040-40fcfecbf0ad/df591466-2fb1-4042-8c3a-91c65707e98a.jpeg"
+    },
+    "cost": 0.2625,
+    "key": "c854e5fa-a984-45b9-b3bb-06bae04164fe",
+    "name": "aura-auditorium-move",
+    "request_id": "01a20f19-f494-739e-94aa-fcd204283f22",
+    "status_url": "https://api.higgsfield.ai/requests/01a20f19-f494-739e-94aa-fcd204283f22/status"
+  }
+]

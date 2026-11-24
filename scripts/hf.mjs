@@ -28,7 +28,7 @@ if (process.env.HTTPS_PROXY && !process.env.NODE_USE_ENV_PROXY) {
 }
 
 const API = 'https://api.higgsfield.ai';
-const CAP_USD = 4.0;
+const CAP_USD = 4.9; // Boris: "use up all the Higgsfield credit" ($5 balance)
 const ASK_USD = 0.3;
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const OUT = path.join(ROOT, 'assets/generated');
