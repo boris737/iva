@@ -9,7 +9,7 @@ log everything here and in `loop/scores.md`.
 2. Score each checklist item 1–10 in `loop/scores.md`.
 3. Pick the **single weakest item**, or the next item on the ambition track below, and fix only that.
 4. Re-shoot. Confirm it improved and nothing else broke (look at the screenshots, check console errors, run Lighthouse on any page you touched).
-   Commit with a clear message. If it got worse, `git revert`.
+   Commit with a clear message and `git push`. If it got worse, `git revert`.
 5. Generate Higgsfield media only when it clearly fixes the item, and only within budget.
 
 ## Hard rules
