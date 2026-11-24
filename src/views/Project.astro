@@ -2,6 +2,7 @@
 import { Picture, Image, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Massing from '../components/Massing.astro';
+import FocusFrame from '../components/FocusFrame.astro';
 import { projects, type Lang, type Project } from '../data/projects';
 import { ui, href } from '../data/site';
 interface Props { lang: Lang; p: Project }
@@ -9,10 +10,16 @@ const { lang, p } = Astro.props;
 const t = ui[lang];
 const i = projects.indexOf(p);
 const next = projects[(i + 1) % projects.length];
-const lcp = await getImage({ src: p.hero.src, format: 'webp', width: p.hero.src.width });
+const frameLine: Record<string, Record<Lang, string>> = {
+  'aura-theatre': { en: 'A theatre in a park.', mk: 'Театар во парк.' },
+  'quiet-sailing': { en: 'A museum on the water.', mk: 'Музеј на водата.' },
+  'xmall': { en: 'Three towers, green courtyards.', mk: 'Три кули, зелени дворови.' },
+  'health-center': { en: 'A clinic behind a curved wall.', mk: 'Клиника зад закривен ѕид.' },
+  'public-building': { en: 'Offices around a forecourt.', mk: 'Канцеларии околу предпростор.' },
+};
 const kind = (k: string) => (k === 'render' ? t.render : k === 'sketch' ? t.sketch : t.drawing);
 ---
-<Base lang={lang} title={p.name} description={p.summary[lang]} alt={lang === 'en' ? `/mk/work/${p.slug}/` : `/work/${p.slug}/`} current="work" preload={lcp.src}>
+<Base lang={lang} title={p.name} description={p.summary[lang]} alt={lang === 'en' ? `/mk/work/${p.slug}/` : `/work/${p.slug}/`} current="work">
   <article>
     <header class="p-head wrap">
       <a class="small muted back" href={href(lang, 'work/')}>{t.back}</a>
@@ -20,9 +27,7 @@ const kind = (k: string) => (k === 'render' ? t.render : k === 'sketch' ? t.sket
       <p class="lede">{p.summary[lang]}</p>
     </header>
 
-    <figure class="p-hero">
-      <Picture fallbackFormat="webp" src={p.hero.src} style={`max-width:${Math.round(p.hero.src.width * 1.5)}px`} formats={['avif', 'webp']} widths={[480, p.hero.src.width]} sizes="(max-width: 760px) 100vw, 1000px" alt={p.hero.alt[lang]} loading="eager" fetchpriority="high" />
-    </figure>
+    <FocusFrame src={p.hero.src} alt={p.hero.alt[lang]} lines={[frameLine[p.slug][lang], p.location[lang]]} />
 
     <div class="p-body wrap">
       <dl class="facts">

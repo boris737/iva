@@ -23,4 +23,6 @@ Scale 1–10. Scores are averaged across all pages.
 ## Log
 - **R1 (track A):** hero motion study. Higgsfield Kling 2.5 Turbo Pro animated her Aura render ($0.263), checked frame by frame for geometry drift, then scrubbed as 25 WebP frames on canvas with crossfade. The hero pins for one screen. LCP unchanged (1.9 s throttled). Fixed pin ordering. → items 5, 13 up.
 - **R2 (track B):** 3D massing of Aura Theatre in her red line (Three.js, axonometric camera). Assembles on scroll (footprint → glass → columns → roof → ring) and turns; drag and arrow keys rotate it. Lazy-loaded near view; her axonometry is the fallback. On home after Lights on, and on the Aura page. → items 12, 11 up.
-- **Next:** R3 track C (project pages: drawings draw in, render depth parallax), then fix the hard dark/travertine section edges (track D), and the mobile Lights-on empty band.
+- **R3 (track C, from reference 25):** focus frame on every project hero. A blurred render with a sharp framed window travels across the building as you scroll, then opens to the full image, with two short italic lines. It hides soft upscales and gives project pages their own scroll moment. Mobile frame tuned separately. → items 3, 13 up.
+- Second inspiration batch logged (7 effect references): reeded-glass wipe queued for track D.
+- **Next:** R4 track C (project pages: drawings draw in, render depth parallax), then fix the hard dark/travertine section edges (track D), and the mobile Lights-on empty band.

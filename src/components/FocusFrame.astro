@@ -1,0 +1,80 @@
+---
+// Project hero after reference 25 (Colette): a blurred render with one sharp framed window
+// that travels as you scroll, then opens to the whole image. Static fallback: the sharp image.
+import { Picture, getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+interface Props { src: ImageMetadata; alt: string; lines?: [string, string] }
+const { src, alt, lines } = Astro.props;
+const blur = await getImage({ src, format: 'webp', width: 480 });
+const maxW = Math.round(src.width * 1.6);
+---
+<section class="ff" data-ff style={`--maxw:${maxW}px; --ar:${src.width / src.height}`}>
+  <div class="ff-stage">
+    <div class="ff-blur" aria-hidden="true" style={`background-image:url(${blur.src})`}></div>
+    <div class="ff-sharp">
+      <Picture fallbackFormat="webp" src={src} formats={['avif', 'webp']} widths={[480, src.width]} sizes="(max-width: 760px) 100vw, 1100px" alt={alt} loading="eager" fetchpriority="high" />
+    </div>
+    <div class="ff-frame" aria-hidden="true"></div>
+    {lines && <p class="ff-l1" aria-hidden="true">{lines[0]}</p>}
+    {lines && <p class="ff-l2" aria-hidden="true">{lines[1]}</p>}
+  </div>
+</section>
+
+<style>
+  .ff { padding-inline: var(--pad); }
+  .ff-stage { position: relative; width: min(100%, var(--maxw)); aspect-ratio: var(--ar); }
+  .ff-blur, .ff-frame, .ff-l1, .ff-l2 { display: none; }
+  .ff-sharp :global(img) { width: 100%; height: 100%; object-fit: cover; }
+
+  /* live */
+  :global(.ff.is-live) { padding: 0; }
+  :global(.ff.is-live) .ff-stage { width: 100%; max-width: none; aspect-ratio: auto; height: 100svh; overflow: hidden; }
+  :global(.ff.is-live) .ff-blur { display: block; position: absolute; inset: -40px; background-size: cover; background-position: center; filter: blur(22px) saturate(.85) brightness(.7); }
+  :global(.ff.is-live) .ff-sharp { position: absolute; left: 50%; top: 50%; width: min(100vw, var(--maxw), calc(100svh * var(--ar))); aspect-ratio: var(--ar); transform: translate(-50%, -50%);
+    clip-path: inset(var(--t, 12%) var(--r, 38%) var(--b, 12%) var(--l, 38%)); will-change: clip-path; }
+  :global(.ff.is-live) .ff-frame { display: block; position: absolute; border: 1px solid rgba(232, 225, 214, .85); pointer-events: none; }
+  :global(.ff.is-live) .ff-l1, :global(.ff.is-live) .ff-l2 { display: block; position: absolute; left: var(--pad); font-family: var(--serif); font-style: italic; font-size: var(--t-h3); font-weight: 300; line-height: 1.1; color: var(--trav); max-width: 16ch; text-shadow: 0 2px 24px rgba(0,0,0,.4); }
+  :global(.ff.is-live) .ff-l1 { bottom: calc(10% + 2.6em); }
+  :global(.ff.is-live) .ff-l2 { bottom: 10%; font-size: var(--t-md); font-style: normal; font-family: var(--sans); }
+  @media (max-width: 760px) {
+    :global(.ff.is-live) .ff-stage { height: 78svh; }
+    :global(.ff.is-live) .ff-sharp { width: calc(78svh * var(--ar)); }
+    :global(.ff.is-live) .ff-l1 { font-size: 1.75rem; }
+  }
+</style>
+
+<script>
+  import { whenIdle } from '../scripts/idle';
+  document.querySelectorAll<HTMLElement>('[data-ff]').forEach((el) => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    whenIdle(async () => {
+      const { gsap, ScrollTrigger } = await import('../scripts/scroll');
+      el.classList.add('is-live');
+      const sharp = el.querySelector<HTMLElement>('.ff-sharp')!;
+      const frame = el.querySelector<HTMLElement>('.ff-frame')!;
+      const stage = el.querySelector<HTMLElement>('.ff-stage')!;
+      const mob = innerWidth < 760;
+      // clip insets in % of the sharp image; the frame border follows the same box
+      const s = { t: mob ? 10 : 10, b: mob ? 36 : 10, l: mob ? 49 : 56, w: mob ? 17 : 24, blur: 1 };
+      const apply = () => {
+        const r = 100 - s.l - s.w;
+        sharp.style.setProperty('--t', s.t + '%'); sharp.style.setProperty('--b', s.b + '%');
+        sharp.style.setProperty('--l', s.l + '%'); sharp.style.setProperty('--r', r + '%');
+        const sb = sharp.getBoundingClientRect(), gb = stage.getBoundingClientRect();
+        frame.style.left = sb.left - gb.left + (sb.width * s.l) / 100 + 'px';
+        frame.style.width = (sb.width * s.w) / 100 + 'px';
+        frame.style.top = sb.top - gb.top + (sb.height * s.t) / 100 + 'px';
+        frame.style.height = (sb.height * (100 - s.t - s.b)) / 100 + 'px';
+        frame.style.opacity = String(s.blur);
+        (el.querySelector('.ff-blur') as HTMLElement).style.opacity = String(0.25 + 0.75 * s.blur);
+      };
+      apply();
+      gsap.timeline({ defaults: { ease: 'none', onUpdate: apply }, scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + Math.round(innerHeight * (mob ? 1.1 : 1.4)), pin: stage, scrub: 0.5, invalidateOnRefresh: true } })
+        .to(s, { l: mob ? 36 : 34, duration: 0.55 })                     // the frame travels across the building
+        .to(el.querySelectorAll('.ff-l1, .ff-l2'), { opacity: 0, duration: 0.15, onUpdate: undefined }, 0.35)
+        .to(s, { l: 0, w: 100, t: 0, b: 0, blur: 0, duration: 0.45, ease: 'power2.inOut' }); // then opens to the whole render
+      addEventListener('resize', apply);
+      ScrollTrigger.sort(); ScrollTrigger.refresh();
+    });
+  });
+</script>
