@@ -1,7 +1,7 @@
 # Inventory: Iva Hristova
 
 Source: Google Drive folder "iva web sajt" (26 files), pulled 2026-11-24 into `source/`.
-`portfolio.zip` (16 MB) could **not** be pulled. It exceeds the Drive connector's 10 MB limit. See Gaps.
+`portfolio.zip` (16 MB) is the same 19 spreads, already unzipped into the folder (confirmed by Boris), so nothing is missing.
 
 ## Who she is
 
@@ -29,7 +29,7 @@ Source: Google Drive folder "iva web sajt" (26 files), pulled 2026-11-24 into `s
 
 ## Projects
 
-Every project is labelled **conceptual** in the portfolio. None is marked as built. Image sizes below are measured inside the spread mockups (each spread is 2000×1329 px, a photographed book). The renders themselves are only about 600–850 px wide, which is fine for thumbnails but **not hero-worthy at these sizes**. The originals are probably in `portfolio.zip`.
+Every project is labelled **conceptual** in the portfolio. None is marked as built. Image sizes below are measured inside the spread mockups (each spread is 2000×1329 px, a photographed book). The renders themselves are only about 600–850 px wide, which is fine for thumbnails but **not hero-worthy at these sizes**. No higher-res originals exist in the folder.
 
 | # | Project | Year | Type | Location | Scale | Her role | Files | Quality (as supplied) | Quality (if originals exist) |
 |---|---|---|---|---|---|---|---|---|---|
@@ -54,10 +54,17 @@ Every project is labelled **conceptual** in the portfolio. None is marked as bui
 
 ## Gaps
 
-1. **`portfolio.zip` (16 MB) can't be pulled** through the Drive connector (10 MB limit). It almost certainly holds the full-res renders and drawings. Without it, every image on the site is a crop from a book mockup, and none is hero-quality.
+1. **No full-res originals.** Every image is a crop from a book mockup (renders about 600–850 px wide). That's enough for cards and mid-size images, but soft as full-bleed heroes on a 1440 px screen. Fix: ask Iva for her raw render exports (V-Ray/Lumion output, 2500 px+) and drawing PDFs.
 2. **No built work and no photos of real spaces.** Everything is a render. Her CV lists residential and workplace interiors (Hristdesign, Parallel Group), but **none of that interior work appears** in the folder.
 3. **Years missing** for projects 2–4. **Her role isn't stated** for any project (solo, team or studio).
 4. **Data errors to fix before publishing:** Aura Theatre repeats XMall's site figures; project names differ between the contents page and the spreads (Vitalis / Health Center; Axis / Public Building); body text has missing spaces ("conceivedasacivic", "Amuseum,amarinaand…").
 5. **Logo:** "IVA" vs "IVY", and which mark leads.
 6. **No Cyrillic copy** of anything, in case the site is bilingual.
 7. **No video, no drone footage, no site photos.** Any motion will be image-to-video from her renders.
+
+## Decisions so far (Boris, 2026-11-24)
+
+- **Audience:** both. Lead with the architecture portfolio for international studios, then a smaller Hristdesign/interiors section for local clients.
+- **Language:** English + Macedonian.
+- **Hosting:** Vercel, no domain yet.
+- **Brand:** build both directions (IVA and Hristdesign); pick after the Phase 2 mockups.
