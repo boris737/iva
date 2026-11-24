@@ -179,8 +179,9 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
         for (let e = 0; e < (s.extras ?? []).length; e++) {
           const ex = s.extras![e]; const sg = new THREE.Group(); g.add(sg);
           const eh = mobile ? 3.4 : 4.2, ew = eh * ex.aspect;
-          const out = side * (r.w / 2 + 1.6 + ew / 2 + e * (ew + 1.2));
-          sg.position.set(out, 0.6 + e * 0.5, -3.5 - e * 2.5); sg.rotation.y = -side * 0.35;
+          // on the open side the camera swings through, set back, so you fly past them on the way on
+          const out = -side * (r.w / 2 + 4 + ew / 2 + e * (ew * 0.6 + 1.5));
+          sg.position.set(out, 1.2 + e * 0.8, -11 - e * 7); sg.rotation.y = side * 0.45;
           const er = await slab(sg, ex.img, ex.video, ex.aspect, eh);
           b.more.push({ mat: er.mat, v: er.v, sheen: er.sheen, mesh: sg });
         }
@@ -204,7 +205,7 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
   const view = (i: number) => {
     const b = built[i]; const s = stations[i];
     if (s.kind === 'arrival') return { pos: new THREE.Vector3(mobile ? 0 : -6, mobile ? 16 : 12, 46), at: new THREE.Vector3(mobile ? 0 : 8, 7, -160) };
-    if (s.kind === 'close') return { pos: new THREE.Vector3(mobile ? 0 : -18, 46, built[1].group.position.z + 70), at: new THREE.Vector3(0, 2, z * 0.55) };
+    if (s.kind === 'close') return { pos: new THREE.Vector3(mobile ? 0 : -14, mobile ? 26 : 32, z * 0.42 + (mobile ? 40 : 60)), at: new THREE.Vector3(mobile ? 0 : 10, 3, z * 0.78) };
     const f = b.focus; const a = aspect();
     const vfov = THREE.MathUtils.degToRad(cam.fov);
     // distance so the slab fills ~62% of the height (desktop) or ~44% (phone, copy sits below)
@@ -272,14 +273,14 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
       if (b.pool) (b.pool.material as THREE.MeshBasicMaterial).opacity = 0.06 + 0.2 * b.lit;
       if (b.sheen) { const sw = clamp((near - 0.3) / 0.65), u = (b.sheen.material as THREE.ShaderMaterial).uniforms; u.x.value = lerp(-0.3, 1.5, sw); u.a.value = Math.sin(Math.PI * sw); }
       if (b.slabMat || b.massing) b.group.position.y = Math.sin(time * 0.55 + k * 1.7) * 0.12;
-      const lag = clamp((near - 0.25) / 0.75);
+      const lag = clamp(Math.max((near - 0.25) / 0.75, 1 - Math.abs(Sd - k - 0.55) / 0.5));
       b.more.forEach((m, j) => {
         const e2 = smooth(clamp(lag * 1.3 - j * 0.15));
         m.mat.color.setScalar(0.25 + 0.75 * e2);
         const u = (m.sheen.material as THREE.ShaderMaterial).uniforms; u.x.value = lerp(-0.3, 1.5, e2); u.a.value = Math.sin(Math.PI * e2) * 0.8;
-        m.mesh.position.y = 0.6 + j * 0.5 + Math.sin(time * 0.7 + j * 2.1 + k) * 0.1;
+        m.mesh.position.y = 1.2 + j * 0.8 + Math.sin(time * 0.7 + j * 2.1 + k) * 0.1;
         if (m.v) {
-          const want = Math.abs(Sd - k) < 0.8;
+          const want = Sd > k - 0.6 && Sd < k + 1.1;
           if (want && m.v.paused) m.v.play().then(() => { m.mat.map = (m.mat as any).__video; m.mat.needsUpdate = true; }).catch(() => {});
           if (!want && !m.v.paused) m.v.pause();
         }

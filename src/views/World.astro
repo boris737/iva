@@ -20,6 +20,11 @@ import travertine from '../assets/tex/travertine.png';
 import concrete from '../assets/tex/concrete.png';
 import plaster from '../assets/tex/olive-plaster.png';
 import signature from '../assets/signature.svg?raw';
+import nAura from '../assets/night/aura-aerial.jpg';
+import nSail from '../assets/night/sail-aerial.jpg';
+import nXm from '../assets/night/xmall-aerial.jpg';
+import nHc from '../assets/night/health-aerial.jpg';
+import nPb from '../assets/night/public-render.jpg';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -30,15 +35,21 @@ const U = async (src: any, width: number, format = 'webp') => (await getImage({ 
 
 const aura = P('aura-theatre'), sail = P('quiet-sailing'), xm = P('xmall'), hc = P('health-center'), pb = P('public-building');
 const ivaL = await U(ivaLogo, 1600), hristL = await U(hristLogo, 900);
+const N = (src: any) => U(src, 1600);
+// her other renders of each project, beside the main panel (video: camera and light animated from that render)
+const X = async (p: ReturnType<typeof P>, name: string, video: string | undefined, aspect: number) => ({ img: await U(G(p, name), 1024), video, aspect });
 // stations for the 3D world (urls are built assets; videos live in /media)
 const stations = [
   { kind: 'arrival' },
-  { kind: 'slab', img: await U(aura.hero.src, 1600), video: '/media/aura.mp4', aspect: 1.382, floor: await U(planLines, 2048), floorAspect: 4.037, massing: true, side: 1 },
+  { kind: 'slab', img: await U(aura.hero.src, 1600), video: '/media/aura.mp4', aspect: 1.382, floor: await U(planLines, 2048), floorAspect: 4.037, massing: true, side: 1, night: await N(nAura),
+    extras: [await X(aura, 'aura-auditorium', '/media/aura-auditorium.mp4', 1024 / 922)] },
   { kind: 'iva', img: await U(portrait, 538), aspect: 0.75, logo: ivaL, logoAspect: 3.015, side: -1 },
-  { kind: 'slab', img: await U(sail.hero.src, 1600), video: '/media/sail.mp4', aspect: 1.93, floor: await U(G(sail, 'sail-sketch-fish'), 692), floorAspect: 1.912, side: 1 },
-  { kind: 'slab', img: await U(xm.hero.src, 1600), video: '/media/xmall.mp4', aspect: 1.399, floor: await U(G(xm, 'xmall-axo'), 564), floorAspect: 1.128, side: -1 },
-  { kind: 'slab', img: await U(hc.hero.src, 1600), video: '/media/health.mp4', aspect: 1.413, floor: await U(G(hc, 'health-axo'), 670), floorAspect: 1.047, side: 1 },
-  { kind: 'slab', img: await U(pb.hero.src, 1600), video: '/media/public.mp4', aspect: 1.423, floor: await U(G(pb, 'public-section'), 1148), floorAspect: 3.521, side: -1 },
+  { kind: 'slab', img: await U(sail.hero.src, 1600), video: '/media/sail.mp4', aspect: 1.93, floor: await U(G(sail, 'sail-sketch-fish'), 692), floorAspect: 1.912, side: 1, night: await N(nSail),
+    extras: [await X(sail, 'sail-fire', '/media/sail-fire.mp4', 1024 / 502), await X(sail, 'sail-gallery', '/media/sail-gallery.mp4', 1024 / 642)] },
+  { kind: 'slab', img: await U(xm.hero.src, 1600), video: '/media/xmall.mp4', aspect: 1.399, floor: await U(G(xm, 'xmall-axo'), 564), floorAspect: 1.128, side: -1, night: await N(nXm),
+    extras: [await X(xm, 'xmall-tower', '/media/xmall-tower.mp4', 0.475)] },
+  { kind: 'slab', img: await U(hc.hero.src, 1600), video: '/media/health.mp4', aspect: 1.413, floor: await U(G(hc, 'health-axo'), 670), floorAspect: 1.047, side: 1, night: await N(nHc) },
+  { kind: 'slab', img: await U(pb.hero.src, 1600), video: '/media/public.mp4', aspect: 1.423, floor: await U(G(pb, 'public-section'), 1148), floorAspect: 3.521, side: -1, night: await N(nPb) },
   { kind: 'materials', mats: await Promise.all([walnut, travertine, concrete, plaster].map((m) => U(m, 1024))), logo: hristL, logoAspect: 0.918, side: 1 },
   { kind: 'close' },
 ];
@@ -107,7 +118,7 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
           <li><a href={`tel:${contact.phoneHref}`}>{contact.phone}</a></li>
           <li><a href={`https://instagram.com/${contact.instagram}`} rel="noopener">@{contact.instagram}</a></li>
         </ul>
-        <p class="w-note">{en ? 'The dusk and night horizon is a generated plate made from her Aura render.' : 'Хоризонтот во самрак и ноќ е генерирана подлога направена од нејзиниот рендер на Аура.'}</p>
+        <p class="w-note">{en ? 'The dusk and night horizon is a generated plate made from her Aura render. The night versions of her renders are relit with Higgsfield; the buildings are hers.' : 'Хоризонтот во самрак и ноќ е генерирана подлога од нејзиниот рендер на Аура. Ноќните верзии на рендерите се осветлени со Higgsfield; зградите се нејзини.'}</p>
       </div>
     </section>
   </div>
@@ -194,7 +205,7 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
       initScroll();
       const cfg = JSON.parse(el.dataset.cfg!); const root = (window as any).__root || '/';
       const fix = (u?: string) => (u && u.startsWith('/') ? root + u.slice(1) : u);
-      cfg.stations.forEach((s: any) => { for (const k of ['img', 'video', 'floor', 'logo']) s[k] = fix(s[k]); if (s.mats) s.mats = s.mats.map(fix); });
+      cfg.stations.forEach((s: any) => { for (const k of ['img', 'video', 'floor', 'logo', 'night']) s[k] = fix(s[k]); if (s.mats) s.mats = s.mats.map(fix); (s.extras || []).forEach((e: any) => { e.img = fix(e.img); e.video = fix(e.video); }); });
       world = await mountWorld(el.querySelector('.w-canvas') as HTMLCanvasElement, cfg.stations, { mobile: innerWidth < 760, plate: fix(cfg.plate)!, plateNight: fix(cfg.plateNight)! });
       paint();
     });

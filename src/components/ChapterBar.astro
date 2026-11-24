@@ -125,7 +125,7 @@ const en = lang === 'en';
       setChapter(i);
       const max = document.documentElement.scrollHeight - innerHeight;
       fill.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`;
-      nav.classList.toggle('on', scrollY > innerHeight * 0.6);
+      nav.classList.toggle('on', scrollY > innerHeight * 0.6 && !document.querySelector('.world.past'));
     };
     addEventListener('scroll', tick, { passive: true }); addEventListener('resize', tick); tick();
 
