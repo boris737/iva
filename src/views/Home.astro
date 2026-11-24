@@ -27,13 +27,14 @@ const en = lang === 'en';
 const t = ui[lang];
 
 const L = async (src: any, width: number) => (await getImage({ src, format: 'webp', width })).src;
+const W3 = [900, 1600, 2346];
 const hero = {
-  plate: [await L(plate, 900), await L(plate, 1692)],
-  building: [await L(building, 900), await L(building, 1692)],
-  fg: [await L(fg, 900), await L(fg, 1692)],
-  night: [await L(plateNight, 900), await L(plateNight, 1692)],
+  plate: await Promise.all(W3.map((w) => L(plate, w))),
+  building: await Promise.all(W3.map((w) => L(building, w))),
+  fg: await Promise.all(W3.map((w) => L(fg, w))),
+  night: await Promise.all(W3.map((w) => L(plateNight, w))),
 };
-const set = (a: string[]) => `${a[0]} 900w, ${a[1]} 1692w`;
+const set = (a: string[]) => a.map((u, i) => `${u} ${W3[i]}w`).join(', ');
 const planUrl = await L(planLines, 1300);
 const wood = await L(walnut, 1400);
 
