@@ -1,0 +1,196 @@
+---
+// Home as one 3D world (see src/scripts/world.ts). Each <section> is one station: real markup that
+// reads on its own without WebGL or with reduced motion, and the scroll length that drives the camera.
+// Every building shown is Iva's own render; four of them move (camera and light animated from her
+// render with Higgsfield). The dusk horizon is the generated empty-park plate from her Aura render.
+import { Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import ChapterBar from '../components/ChapterBar.astro';
+import { href, contact } from '../data/site';
+import { about } from '../data/site';
+import { projects, type Lang } from '../data/projects';
+import portrait from '../assets/portrait.png';
+import ivaLogo from '../assets/iva-logo-white.png';
+import hristLogo from '../assets/hrist-logo-white.png';
+import plate from '../assets/hero/plate.png';
+import plateNight from '../assets/hero/plate-night.png';
+import planLines from '../assets/work/aura-plan-lines.png';
+import walnut from '../assets/tex/walnut.png';
+import travertine from '../assets/tex/travertine.png';
+import concrete from '../assets/tex/concrete.png';
+import plaster from '../assets/tex/olive-plaster.png';
+import signature from '../assets/signature.svg?raw';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const en = lang === 'en';
+const P = (slug: string) => projects.find((p) => p.slug === slug)!;
+const G = (p: ReturnType<typeof P>, n: string) => p.gallery.find((g) => g.src.src.includes(n))!.src;
+const U = async (src: any, width: number, format = 'webp') => (await getImage({ src, format: format as any, width: Math.min(width, src.width) })).src;
+
+const aura = P('aura-theatre'), sail = P('quiet-sailing'), xm = P('xmall'), hc = P('health-center'), pb = P('public-building');
+const ivaL = await U(ivaLogo, 1600), hristL = await U(hristLogo, 900);
+// stations for the 3D world (urls are built assets; videos live in /media)
+const stations = [
+  { kind: 'arrival' },
+  { kind: 'slab', img: await U(aura.hero.src, 1600), video: '/media/aura.mp4', aspect: 1.382, floor: await U(planLines, 2048), floorAspect: 4.037, massing: true, side: 1 },
+  { kind: 'iva', img: await U(portrait, 538), aspect: 0.75, logo: ivaL, logoAspect: 3.015, side: -1 },
+  { kind: 'slab', img: await U(sail.hero.src, 1600), video: '/media/sail.mp4', aspect: 1.93, floor: await U(G(sail, 'sail-sketch-fish'), 692), floorAspect: 1.912, side: 1 },
+  { kind: 'slab', img: await U(xm.hero.src, 1600), video: '/media/xmall.mp4', aspect: 1.399, floor: await U(G(xm, 'xmall-axo'), 564), floorAspect: 1.128, side: -1 },
+  { kind: 'slab', img: await U(hc.hero.src, 1600), video: '/media/health.mp4', aspect: 1.413, floor: await U(G(hc, 'health-axo'), 670), floorAspect: 1.047, side: 1 },
+  { kind: 'slab', img: await U(pb.hero.src, 1600), video: '/media/public.mp4', aspect: 1.423, floor: await U(G(pb, 'public-section'), 1148), floorAspect: 3.521, side: -1 },
+  { kind: 'materials', mats: await Promise.all([walnut, travertine, concrete, plaster].map((m) => U(m, 1024))), logo: hristL, logoAspect: 0.918, side: 1 },
+  { kind: 'close' },
+];
+const world = { stations, plate: await U(plate, 2346), plateNight: await U(plateNight, 2346) };
+
+const proj = (p: ReturnType<typeof P>) => ({ name: p.name, meta: `${p.type[lang]}, ${p.location[lang]}${p.year ? `, ${p.year}` : ''}`, sum: p.summary[lang], href: href(lang, `work/${p.slug}/`), img: p.hero });
+const open = en ? 'Open the project' : 'Отвори го проектот';
+const moving = en ? 'Camera and light animated from her render.' : 'Камерата и светлината се анимирани од нејзиниот рендер.';
+---
+<Base lang={lang} alt={en ? '/mk/' : '/'}>
+  <div class="world" data-world data-cfg={JSON.stringify(world)}>
+    <canvas class="w-canvas" aria-hidden="true"></canvas>
+    <div class="w-scrim" aria-hidden="true"></div>
+
+    <section class="st st-arrival" data-chapter={en ? 'Iva Hristova' : 'Ива Христова'} aria-labelledby="w-h">
+      <div class="st-copy">
+        <h1 class="display w-name" id="w-h">{en ? <>Iva<br />Hristova</> : <>Ива<br />Христова</>}</h1>
+        <p class="w-lede">{en ? 'Architect and interior designer in Skopje. Five buildings and a studio, laid out on the water.' : 'Архитект и дизајнер на ентериер од Скопје. Пет згради и едно студио, поставени на водата.'}</p>
+      </div>
+    </section>
+
+    {[aura, sail, xm, hc, pb].map((p, k) => {
+      const d = proj(p);
+      const st = (
+        <section class="st st-proj" data-chapter={d.name} aria-labelledby={`w-${p.slug}`}>
+          <div class="st-copy">
+            <p class="small w-meta">{d.meta}</p>
+            <h2 class="display" id={`w-${p.slug}`}>{d.name}</h2>
+            <p class="w-sum">{d.sum}</p>
+            <a class="link w-link" href={d.href}>{open}</a>
+            {p.slug !== 'aura-theatre' && p.slug !== 'iva' && <p class="w-note">{moving}</p>}
+            {p.slug === 'aura-theatre' && <p class="w-note">{en ? 'Red lines: her ground floor plan, raised into a simplified massing. Moving image animated from her render.' : 'Црвени линии: нејзината основа, подигната во поедноставен волумен. Подвижната слика е анимирана од нејзиниот рендер.'}</p>}
+          </div>
+          <figure class="st-still"><Image src={d.img.src} format="webp" widths={[640, 1280]} sizes="(max-width: 760px) 100vw, 60vw" alt={d.img.alt[lang]} loading="lazy" /></figure>
+        </section>
+      );
+      return k === 1 ? [
+        <section class="st st-iva" data-chapter="Iva" aria-labelledby="w-iva">
+          <div class="st-copy">
+            <p class="small w-meta">{en ? 'Who drew all this' : 'Кој го нацрта сето ова'}</p>
+            <h2 class="display" id="w-iva">{en ? 'Iva Hristova' : 'Ива Христова'}</h2>
+            <p class="w-sum">{about[lang].bio[0]}</p>
+            <p class="w-sub">{en ? 'Interior designer at Parallel Group, Skopje. Founder of Hristdesign.' : 'Дизајнер на ентериер во Parallel Group, Скопје. Основач на Hristdesign.'}</p>
+            <a class="link w-link" href={href(lang, 'about/')}>{en ? 'More about her' : 'Повеќе за неа'}</a>
+          </div>
+          <figure class="st-still"><Image src={portrait} format="webp" width={538} alt={en ? 'Portrait of Iva Hristova' : 'Портрет на Ива Христова'} loading="lazy" /></figure>
+        </section>, st] : st;
+    })}
+
+    <section class="st st-studio" id="studio" data-chapter="Hristdesign" aria-labelledby="w-studio">
+      <div class="st-copy">
+        <Image class="w-mark" src={hristLogo} format="webp" width={160} alt="Hristdesign" />
+        <h2 class="display" id="w-studio">{en ? 'Rooms, too.' : 'И простории.'}</h2>
+        <p class="w-sum">{en ? 'Her studio for interiors and small houses in Macedonia. Walnut, travertine, board-marked concrete, lime plaster. Low light, calm rooms.' : 'Нејзиното студио за ентериери и мали куќи во Македонија. Орев, травертин, бетон со отпечаток од даска, варов малтер. Пригушена светлина, мирни простории.'}</p>
+        <a class="btn w-btn" href={href(lang, 'contact/')}>{en ? 'Start a project' : 'Започнете проект'}</a>
+        <p class="w-note">{en ? 'Material blocks use generated texture samples, not her projects.' : 'Материјалите се генерирани примероци, не нејзини проекти.'}</p>
+      </div>
+    </section>
+
+    <section class="st st-close" data-chapter={en ? 'Contact' : 'Контакт'} aria-labelledby="w-close">
+      <div class="st-copy">
+        <div class="w-sig" aria-hidden="true" set:html={signature} />
+        <h2 class="display" id="w-close">{en ? 'Let’s build something.' : 'Ајде да изградиме нешто.'}</h2>
+        <ul class="w-ways">
+          <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>
+          <li><a href={`tel:${contact.phoneHref}`}>{contact.phone}</a></li>
+          <li><a href={`https://instagram.com/${contact.instagram}`} rel="noopener">@{contact.instagram}</a></li>
+        </ul>
+        <p class="w-note">{en ? 'The dusk and night horizon is a generated plate made from her Aura render.' : 'Хоризонтот во самрак и ноќ е генерирана подлога направена од нејзиниот рендер на Аура.'}</p>
+      </div>
+    </section>
+  </div>
+  <ChapterBar lang={lang} />
+</Base>
+
+<style>
+  /* static (no WebGL, reduced motion): an editorial list on dark ground */
+  .world { position: relative; background: #120d09; color: #f3ebdf; }
+  .w-canvas, .w-scrim { display: none; }
+  .st { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: clamp(24px, 5vw, 80px); align-items: center; padding: clamp(80px, 12vw, 150px) var(--pad); border-top: 1px solid rgba(243, 235, 223, .08); }
+  .st-arrival, .st-studio, .st-close { grid-template-columns: 1fr; }
+  .st-still { margin: 0; }
+  .st-still :global(img) { width: 100%; height: auto; display: block; }
+  .st-iva .st-still :global(img) { max-width: 420px; }
+  .w-name { font-size: clamp(3.6rem, 1rem + 12vw, 12rem); line-height: .86; letter-spacing: -0.045em; text-transform: uppercase; }
+  .w-lede { font-family: var(--serif); font-size: var(--t-lg); margin-top: 24px; max-width: 30ch; }
+  .w-meta { color: #bfb2a2; letter-spacing: .02em; }
+  .st-copy .display:not(.w-name) { font-size: var(--t-h1); margin-top: 8px; line-height: .95; }
+  .w-sum { font-family: var(--serif); font-size: var(--t-lg); line-height: 1.4; margin-top: 18px; max-width: 32ch; }
+  .w-sub { margin-top: 14px; color: #cdbfae; max-width: 40ch; }
+  .w-link { display: inline-block; margin-top: 22px; }
+  .w-btn { margin-top: 26px; }
+  .w-note { font-size: var(--t-xs); color: #a99b8a; margin-top: 18px; max-width: 46ch; }
+  .st-copy :global(.w-mark) { width: 84px; height: auto; margin-bottom: 18px; }
+  .w-sig { width: min(460px, 76vw); color: var(--red); }
+  .w-sig :global(svg) { width: 100%; height: auto; }
+  .w-ways { list-style: none; padding: 0; margin: 26px 0 0; display: flex; flex-wrap: wrap; gap: 6px 32px; font-size: var(--t-lg); }
+  .w-ways a { display: inline-block; padding-block: 8px; border-bottom: 1px solid rgba(243, 235, 223, .35); }
+  @media (max-width: 760px) { .st { grid-template-columns: 1fr; } .w-ways { flex-direction: column; font-size: var(--t-md); } }
+
+  /* live: a fixed canvas behind, every section is scroll length, the copy is a fixed layer the script fades */
+  :global(.world.live) .w-canvas { display: block; position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+  :global(.world.live) .w-scrim { display: block; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(90deg, rgba(14, 10, 7, .78) 0%, rgba(14, 10, 7, .45) 32%, rgba(14, 10, 7, 0) 58%); }
+  :global(.world.live.past) .w-canvas, :global(.world.live.past) .w-scrim, :global(.world.live.past) .st-copy { visibility: hidden !important; }
+  :global(.world.live) .st { display: block; height: var(--st-h, 150svh); padding: 0; border: 0; }
+  :global(.world.live) .st-still { display: none; }
+  :global(.world.live) .st-copy { position: fixed; z-index: 2; left: var(--pad); top: 50%; translate: 0 -50%; width: min(34rem, 40vw);
+    opacity: 0; visibility: hidden; text-shadow: 0 2px 24px rgba(10, 6, 3, .6); will-change: opacity, transform; }
+  :global(.world.live) .st-arrival .st-copy { width: min(60rem, 80vw); top: auto; bottom: clamp(48px, 12svh, 140px); translate: 0 0; }
+  :global(.world.live) .st-close .st-copy { width: min(40rem, 80vw); }
+  @media (max-width: 760px) {
+    :global(.world.live) .w-scrim { background: linear-gradient(0deg, rgba(14, 10, 7, .9) 0%, rgba(14, 10, 7, .6) 34%, rgba(14, 10, 7, 0) 58%); }
+    :global(.world.live) .st-copy, :global(.world.live) .st-arrival .st-copy, :global(.world.live) .st-close .st-copy { width: auto; right: var(--pad); top: auto; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); translate: 0 0; }
+    :global(.world.live) .st-copy .display:not(.w-name) { font-size: 2.6rem; }
+    :global(.world.live) .w-sum { font-size: var(--t-md); }
+    :global(.world.live) .w-note { display: none; }
+  }
+</style>
+
+<script>
+  import { whenIdle } from '../scripts/idle';
+  const el = document.querySelector<HTMLElement>('[data-world]');
+  const gl = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
+  if (el && gl && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.classList.add('live');
+    const secs = [...el.querySelectorAll<HTMLElement>('.st')];
+    const copies = secs.map((s) => s.querySelector<HTMLElement>('.st-copy')!);
+    let S = 0, world: { set: (s: number) => void } | null = null;
+    const H = () => secs[1].offsetHeight || innerHeight * 1.5;
+    const paint = () => {
+      const top = el.getBoundingClientRect().top + scrollY;
+      S = Math.max(0, Math.min(secs.length - 1, (scrollY - top) / H()));
+      world?.set(S);
+      const r = el.getBoundingClientRect(); el.classList.toggle('past', r.bottom < innerHeight * 0.55);
+      copies.forEach((c, i) => {
+        const d = S - i;                                    // 0 = resting at this station
+        const o = Math.max(0, Math.min(1, Math.min((d + 0.18) / 0.16, (0.4 - d) / 0.12)));
+        const last = i === secs.length - 1 ? Math.max(0, Math.min(1, (d + 0.18) / 0.16)) : o;
+        c.style.opacity = String(last); c.style.visibility = last > 0.01 ? 'visible' : 'hidden';
+        c.style.transform = `translate3d(0,${((1 - last) * (d < 0 ? 22 : -16)).toFixed(1)}px,0)`;
+      });
+    };
+    addEventListener('scroll', paint, { passive: true }); addEventListener('resize', paint); paint();
+    whenIdle(async () => {
+      const [{ mountWorld }, { initScroll }] = await Promise.all([import('../scripts/world'), import('../scripts/scroll')]);
+      initScroll();
+      const cfg = JSON.parse(el.dataset.cfg!); const root = (window as any).__root || '/';
+      const fix = (u?: string) => (u && u.startsWith('/') ? root + u.slice(1) : u);
+      cfg.stations.forEach((s: any) => { for (const k of ['img', 'video', 'floor', 'logo']) s[k] = fix(s[k]); if (s.mats) s.mats = s.mats.map(fix); });
+      world = await mountWorld(el.querySelector('.w-canvas') as HTMLCanvasElement, cfg.stations, { mobile: innerWidth < 760, plate: fix(cfg.plate)!, plateNight: fix(cfg.plateNight)! });
+      paint();
+    });
+  }
+</script>
