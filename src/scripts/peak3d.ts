@@ -74,7 +74,7 @@ export async function mountPeak(canvas: HTMLCanvasElement, planUrl: string) {
     const yaw = THREE.MathUtils.degToRad(lerp(0, -32, tilt) + 6 * swing);
     cam.position.set(Math.sin(yaw) * Math.cos(el) * 300, Math.sin(el) * 300, Math.cos(yaw) * Math.cos(el) * 300);
     cam.up.set(0, 1, 0); cam.lookAt(0, mob ? 2 : 6, mob ? 0 : -4);
-    const zoom = lerp(mob ? 142 : 200, mob ? 124 : 172, tilt) * lerp(1, 0.86, swing);
+    const zoom = lerp(mob ? 142 : 178, mob ? 124 : 160, tilt) * lerp(1, 0.86, swing);
     const half = mob ? zoom / 2 : (zoom / a) / 2;
     cam.left = mob ? -zoom / 2 : -half * a; cam.right = -cam.left; cam.top = mob ? zoom / a / 2 : half; cam.bottom = -cam.top;
     cam.updateProjectionMatrix();
@@ -85,7 +85,7 @@ export async function mountPeak(canvas: HTMLCanvasElement, planUrl: string) {
     const r2 = span(p, 0.6, 0.78); ring.position.y = lerp(H + 26, H + 0.5 + RH / 2, r2); ring.visible = r2 > 0.002; fade(ring, r2);
     planMat.opacity = lerp(1, 0.35, rise);
     // dusk: lines warm towards lamplight, roof fill darkens with the page
-    const dusk = span(p, 0.74, 0.95);
+    const dusk = 0; // the page stays on travertine now; no dusk tint
     lineMats.forEach((m) => m.color.copy(RED).lerp(GLOW, dusk));
     roofFill.color.setRGB(lerp(0.91, 0.2, dusk), lerp(0.88, 0.14, dusk), lerp(0.84, 0.1, dusk));
     renderer.render(scene, cam);

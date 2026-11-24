@@ -7,7 +7,7 @@ const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 export function initHome() {
   initScroll();
-  hero(); voice(); peak(); hand(); rigour(); touch(); close();
+  hero(); approach(); peak(); hand(); rigour(); touch(); close();
   ScrollTrigger.sort(); ScrollTrigger.refresh();
   addEventListener('load', () => ScrollTrigger.refresh());
 }
@@ -29,14 +29,53 @@ function hero() {
   });
 }
 
-/* 2 · Voice: the sentence lights up word by word under a held frame */
-function voice() {
-  const el = document.querySelector<HTMLElement>('[data-voice]'); if (!el) return;
+/* 2 · Approach: scroll drives the camera down to her entrance (60 frames from a Higgsfield move of her
+   render), the words change as you get closer, then the two glass leaves slide apart onto the travertine
+   of the next act, so the 3D plan reads as what is behind the door. */
+const ROOT = () => ((window as any).__root as string) || '/';
+function approach() {
+  const el = document.querySelector<HTMLElement>('[data-approach]'); if (!el) return;
   el.classList.add('live');
-  const words = el.querySelectorAll('.voice-line span');
-  gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + innerHeight * 0.9, pin: el.querySelector('.voice-stage'), scrub: 0.4 } })
-    .to(words, { opacity: 1, stagger: 0.12, duration: 0.3, ease: 'none' })
-    .from(el.querySelector('.voice-who'), { opacity: 0, y: 10, duration: 0.3 }, '>-0.2');
+  const q = (s: string) => el.querySelector<HTMLElement>(s)!;
+  const set = mob() ? 'm' : 'd';
+  const doors = [q('.ap-l'), q('.ap-r')];
+  doors.forEach((d) => (d.style.backgroundImage = `url(${ROOT()}seq/door/${set}/59.webp)`));
+  const lines = [q('.ap-copy .display'), q('.ap-1'), q('.ap-2'), q('.ap-3')];
+  const win = [[0.0, 0.2], [0.2, 0.42], [0.44, 0.64], [0.66, 0.8]];
+  const cl = gsap.utils.clamp(0, 1);
+  const inOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  let seq: { draw: (p: number) => void } | null = null;
+  const P = 0.8;                                        // the camera owns 0–.8, the doors the rest
+  const update = (p: number) => {
+    seq?.draw(Math.min(1, p / P));
+    const open = inOut(cl((p - 0.82) / 0.18));
+    const show = p >= P - 0.005;
+    doors.forEach((d, i) => {
+      d.style.visibility = show ? 'visible' : 'hidden';
+      d.style.transform = `translate3d(${(i ? 1 : -1) * open * 52}%,0,0) scale(${1 + open * 0.06})`;
+      d.style.setProperty('--edge', String(Math.min(1, open * 6) * (1 - open)));
+    });
+    q('.ap-seq').style.opacity = show ? '0' : '1';
+    lines.forEach((l, i) => {
+      const [a, b] = win[i];
+      const o = cl(Math.min((p - a) / 0.05, (b - p) / 0.05));
+      l.style.opacity = String(i === 0 ? cl((b - p) / 0.05) : o);
+      l.style.transform = `translate3d(0,${((1 - o) * 18).toFixed(1)}px,0)`;
+    });
+    q('.ap-note').style.opacity = String(cl(1 - open * 2));
+  };
+  const st = { p: 0 };
+  gsap.to(st, { p: 1, ease: 'none', onUpdate: () => update(st.p), scrollTrigger: {
+    trigger: el, start: 'top top', end: () => '+=' + Math.round(innerHeight * (mob() ? 3 : 3.6)),
+    pin: q('.ap-stage'), scrub: 0.5, invalidateOnRefresh: true,
+  } });
+  update(0);
+  const io = new IntersectionObserver(async ([e]) => {
+    if (!e.isIntersecting) return; io.disconnect();
+    seq = await frameSequence(q('.ap-seq') as HTMLCanvasElement, `${ROOT()}seq/door/${set}/`, 60);
+    update(st.p);
+  }, { rootMargin: '200% 0px' });
+  io.observe(el);
 }
 
 /* 3 · Peak: plan → massing → render, the longest held scroll on the page */
@@ -47,36 +86,25 @@ function peak() {
   el.classList.add('live');
   const q = (s: string) => el.querySelector<HTMLElement>(s)!;
   const lines = [...el.querySelectorAll<HTMLElement>('.peak-lines li')];
-  const render = q('.peak-render');
   const st = { p: 0 };
   let three: { draw: (p: number) => void } | null = null;
-  let seq: { draw: (p: number) => void } | null = null;
-  const P3 = 0.62; // 3D owns 0–.62 of the act, the render owns the rest
+  const P3 = 0.86; // the model assembles over most of the act, then holds for the title
   const update = () => {
     const p = st.p;
     three?.draw(Math.min(1, p / P3));
-    seq?.draw(Math.max(0, (p - 0.66) / 0.34));
-    // no colour fade through grey: the travertine holds until her render has covered the frame
-    const rv = gsap.utils.clamp(0, 1, (p - 0.56) / 0.12);
-    el.style.background = rv >= 1 ? '#1c140e' : '#dad1c5';
-    const ink = gsap.utils.interpolate('#2a2119', '#f3ebdf', gsap.utils.clamp(0, 1, (rv - 0.3) / 0.3));
     lines.forEach((li, i) => {
-      const a = [0.02, 0.2, 0.44][i], b = [0.17, 0.4, 0.66][i];
+      const a = [0.02, 0.28, 0.56][i], b = [0.25, 0.53, 0.84][i];
       const o = gsap.utils.clamp(0, 1, Math.min((p - a) / 0.04, (b - p) / 0.04));
       li.style.opacity = String(o); li.style.transform = `translateY(${(1 - o) * 14}px)`;
-      li.style.color = ink;
     });
-    render.style.opacity = String(rv > 0 ? 1 : 0);
-    render.style.clipPath = `circle(${rv * 120}% at 34% 52%)`;
     q('.peak-title').style.opacity = String(gsap.utils.clamp(0, 1, (p - 0.86) / 0.06));
   };
-  gsap.to(st, { p: 1, ease: 'none', onUpdate: update, scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + Math.round(innerHeight * (mob() ? 3.2 : 4.2)), pin: q('.peak-stage'), scrub: 0.6, invalidateOnRefresh: true } });
+  gsap.to(st, { p: 1, ease: 'none', onUpdate: update, scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + Math.round(innerHeight * (mob() ? 2.6 : 3)), pin: q('.peak-stage'), scrub: 0.6, invalidateOnRefresh: true } });
   update();
   const io = new IntersectionObserver(async ([e]) => {
     if (!e.isIntersecting) return; io.disconnect();
     const [{ mountPeak }] = await Promise.all([import('./peak3d')]);
     three = await mountPeak(q('.peak-3d') as HTMLCanvasElement, el.dataset.plan!);
-    seq = await frameSequence(q('.peak-seq') as HTMLCanvasElement, `/seq/aura/${mob() ? 'm' : 'd'}/`, 25);
     update();
   }, { rootMargin: '150% 0px' });
   io.observe(el);

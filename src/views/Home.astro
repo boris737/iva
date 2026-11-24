@@ -13,7 +13,6 @@ import fg from '../assets/hero/fg.png';
 import plan from '../assets/work/aura-plan-ground.png';
 import planLines from '../assets/work/aura-plan-lines.png';
 import axo from '../assets/work/aura-axo.png';
-import aura from '../assets/work/aura-aerial.png';
 import mark from '../assets/hrist-mark-charcoal.png';
 import walnut from '../assets/tex/walnut.png';
 import travertine from '../assets/tex/travertine.png';
@@ -45,12 +44,9 @@ const rigour = ['xmall', 'health-center', 'public-building'].map((s) => projects
 // the drawing each render is plotted over, and how wide it may sit on the sheet (≤1.6× its native width)
 const sheetDraw: Record<string, string> = { 'xmall': 'xmall-axo', 'health-center': 'health-axo', 'public-building': 'public-section' };
 const drawOf = (p: (typeof projects)[number]) => p.gallery.find((g) => g.src.src.includes(sheetDraw[p.slug]))!;
-const voice = en
-  ? 'A strong idea has to balance creativity with technical understanding.'
-  : 'Силната идеја мора да ги балансира креативноста и техничкото разбирање.';
 const peakLines = en
-  ? ['It starts as a line.', 'Then it stands up.', 'Then the lights come on.']
-  : ['Почнува како линија.', 'Потоа се исправа.', 'Потоа светлата се палат.'];
+  ? ['Inside, it starts as a line.', 'Then it stands up.', 'Then the ring closes.']
+  : ['Внатре, почнува како линија.', 'Потоа се исправа.', 'Потоа прстенот се затвора.'];
 const mats = [walnut, travertine, concrete, plaster];
 ---
 <Base lang={lang} alt={en ? '/mk/' : '/'}>
@@ -72,11 +68,23 @@ const mats = [walnut, travertine, concrete, plaster];
     </div>
   </section>
 
-  <!-- 2 · Voice: her own sentence, lit word by word -->
-  <section class="voice" data-voice>
-    <div class="voice-stage">
-      <p class="voice-line serif-i">{voice.split(' ').map((w) => <span>{w} </span>)}</p>
-      <p class="voice-who small muted">{en ? 'Iva, from the introduction to her portfolio' : 'Ива, од воведот во нејзиното портфолио'}</p>
+  <!-- 2 · Approach: the camera comes down to her entrance under the reader's hand, then the glass doors part -->
+  <section class="approach" data-approach aria-labelledby="ap-t">
+    <div class="ap-stage">
+      <picture class="ap-still">
+        <source media="(max-width: 760px)" srcset="/seq/door/m/59.webp" />
+        <img src="/seq/door/d/59.webp" alt={en ? 'The glass entrance of Aura Theatre at dusk, lobby and stair lit inside' : 'Стаклениот влез на Театар Аура во самрак, осветлено фоаје и скали'} loading="lazy" />
+      </picture>
+      <canvas class="ap-seq" aria-hidden="true"></canvas>
+      <div class="ap-door ap-l" aria-hidden="true"></div>
+      <div class="ap-door ap-r" aria-hidden="true"></div>
+      <div class="ap-copy">
+        <h2 class="display" id="ap-t"><span>Aura Theatre</span></h2>
+        <p class="ap-line ap-1">{en ? 'A theatre in a park in Aerodrom, Skopje.' : 'Театар во парк во Аеродром, Скопје.'}</p>
+        <p class="ap-line ap-2">{en ? 'Walk up to the glass.' : 'Пријди до стаклото.'}</p>
+        <p class="ap-line ap-3">{en ? 'Come in.' : 'Влези.'}</p>
+      </div>
+      <p class="ap-note">{en ? 'Camera move animated from her render with Higgsfield.' : 'Движењето на камерата е анимирано од нејзиниот рендер со Higgsfield.'}</p>
     </div>
   </section>
 
@@ -88,15 +96,11 @@ const mats = [walnut, travertine, concrete, plaster];
         <figure><Image src={axo} format="webp" width={277} alt={en ? 'Aura Theatre axonometry' : 'Аксонометрија, Театар Аура'} /><figcaption>{peakLines[1]}</figcaption></figure>
       </div>
       <canvas class="peak-3d" aria-hidden="true"></canvas>
-      <div class="peak-render">
-        <Image class="peak-img" src={aura} format="webp" widths={[480, 825]} sizes="100vw" alt={en ? 'Aura Theatre at sunset, lights on' : 'Театар Аура на зајдисонце, со вклучени светла'} loading="lazy" />
-        <canvas class="peak-seq" aria-hidden="true"></canvas>
-      </div>
       <ol class="peak-lines" aria-hidden="true">{peakLines.map((l) => <li class="display">{l}</li>)}</ol>
       <div class="peak-title">
         <h2 class="display" id="peak-t">Aura Theatre</h2>
         <p class="small">{en ? 'Theatre and cultural centre, Aerodrom, Skopje.' : 'Театар и културен центар, Аеродром, Скопје.'} <a class="link" href={href(lang, 'work/aura-theatre/')}>{en ? 'Open the project' : 'Отвори го проектот'}</a></p>
-        <p class="peak-note">{en ? 'Plan and render: Iva Hristova. 3D massing simplified from her plan. Motion study animated from her render.' : 'Основа и рендер: Ива Христова. 3Д волумените се поедноставени од нејзината основа. Движењето е анимирано од нејзиниот рендер.'}</p>
+        <p class="peak-note">{en ? 'Plan: Iva Hristova. 3D massing simplified from her ground floor plan. Drag to turn it.' : 'Основа: Ива Христова. 3Д волумените се поедноставени од нејзината основа. Повлечи за да го свртиш.'}</p>
       </div>
     </div>
   </section>
@@ -214,13 +218,29 @@ const mats = [walnut, travertine, concrete, plaster];
     .hero-cap { text-align: left; }
   }
 
-  /* 2 · voice */
-  .voice { background: var(--umber); }
-  .voice-stage { min-height: 100svh; display: grid; align-content: center; padding: 18svh var(--pad); }
-  .voice-line { font-size: clamp(2.2rem, 1rem + 5.2vw, 6.2rem); line-height: 1.04; max-width: 17ch; }
-  .voice-line span { transition: opacity .2s; }
-  :global(.voice.live) .voice-line span { opacity: .14; }
-  .voice-who { margin-top: 32px; padding-left: .2em; }
+  /* 2 · approach: static = the last frame with its caption; live = pinned scrub + doors */
+  .approach { position: relative; background: #1a120c; color: #f3ebdf; }
+  .ap-stage { position: relative; min-height: 100svh; overflow: hidden; display: grid; align-items: end; }
+  .ap-still, .ap-still img, .ap-seq, .ap-door { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ap-still img { object-fit: cover; object-position: 56% 50%; }
+  .ap-seq, .ap-door { display: none; }
+  .ap-copy { position: relative; padding: 18svh var(--pad) clamp(40px, 9svh, 96px); max-width: 40rem; text-shadow: 0 2px 24px rgba(20, 10, 4, .55); }
+  .ap-copy .display { font-size: var(--t-h1); }
+  .ap-line { font-family: var(--serif); font-size: var(--t-lg); margin-top: 14px; }
+  .ap-note { position: absolute; right: var(--pad); bottom: 16px; font-size: var(--t-xs); opacity: .7; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
+  :global(.approach.live) .ap-stage { height: 100svh; min-height: 0; display: block; background: var(--trav); }
+  :global(.approach.live) .ap-still { opacity: 0; }
+  :global(.approach.live) .ap-seq { display: block; }
+  :global(.approach.live) .ap-door { display: block; background-size: cover; background-position: 56% 50%; will-change: transform; }
+  :global(.approach.live) .ap-l { clip-path: inset(0 50% 0 0); }
+  :global(.approach.live) .ap-r { clip-path: inset(0 0 0 50%); }
+  :global(.approach.live) .ap-door::after { content: ''; position: absolute; top: 0; bottom: 0; width: 2px; background: linear-gradient(rgba(255,240,220,.0), rgba(255,240,220,.85) 30%, rgba(255,240,220,.85) 70%, rgba(255,240,220,0)); opacity: var(--edge, 0); }
+  :global(.approach.live) .ap-l::after { left: calc(50% - 2px); }
+  :global(.approach.live) .ap-r::after { left: 50%; }
+  :global(.approach.live) .ap-copy { position: absolute; inset: auto 0 0 0; padding-top: 0; }
+  :global(.approach.live) .ap-copy > * { opacity: 0; will-change: opacity, transform; }
+  :global(.approach.live) .ap-line { position: absolute; left: var(--pad); bottom: clamp(40px, 9svh, 96px); margin: 0; font-size: clamp(1.6rem, 1rem + 2.4vw, 3.2rem); font-family: var(--display); font-weight: 700; letter-spacing: -0.03em; max-width: 18ch; }
+  :global(.approach.live) .ap-copy .display { position: absolute; left: var(--pad); bottom: clamp(40px, 9svh, 96px); }
 
   /* 3 · peak */
   .peak { position: relative; background: var(--trav); color: var(--ink); }
@@ -228,8 +248,7 @@ const mats = [walnut, travertine, concrete, plaster];
   .peak-static { display: grid; grid-template-columns: 2fr 1fr; gap: var(--gap); align-items: end; }
   .peak-static :global(img) { width: 100%; mix-blend-mode: multiply; }
   .peak-static figcaption { font-family: var(--display); font-weight: 700; font-size: var(--t-h3); letter-spacing: -0.03em; margin-top: 12px; color: var(--ink); }
-  .peak-3d, .peak-seq, .peak-lines { display: none; }
-  .peak-render :global(img) { width: 100%; }
+  .peak-3d, .peak-lines { display: none; }
   .peak-title { color: var(--ink); }
   .peak-title .display { font-size: var(--t-h1); }
   .peak-title .small { margin-top: 12px; }
@@ -237,11 +256,9 @@ const mats = [walnut, travertine, concrete, plaster];
   :global(.peak.live) .peak-stage { height: 100svh; padding: 0; display: block; overflow: hidden; }
   :global(.peak.live) .peak-static { display: none; }
   :global(.peak.live) .peak-3d { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
-  :global(.peak.live) .peak-render { position: absolute; inset: 0; opacity: 0; clip-path: circle(0% at 34% 52%); }
-  :global(.peak.live) .peak-render :global(img), :global(.peak.live) .peak-seq { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 38% 55%; display: block; }
   :global(.peak.live) .peak-lines { display: block; list-style: none; padding: 0; position: absolute; left: var(--pad); top: 15svh; margin: 0; }
   :global(.peak.live) .peak-lines li { position: absolute; white-space: nowrap; font-size: clamp(2.2rem, 1rem + 4.6vw, 5.6rem); opacity: 0; }
-  :global(.peak.live) .peak-title { position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(20px, 5svh, 48px); color: #f3ebdf; opacity: 0; text-shadow: 0 2px 30px rgba(0,0,0,.5); }
+  :global(.peak.live) .peak-title { position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(20px, 5svh, 48px); opacity: 0; }
   @media (max-width: 760px) {
     .peak-static { grid-template-columns: 1fr; }
     :global(.peak.live) .peak-lines { top: 12svh; }
