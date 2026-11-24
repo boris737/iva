@@ -56,15 +56,16 @@ function peak() {
     const p = st.p;
     three?.draw(Math.min(1, p / P3));
     seq?.draw(Math.max(0, (p - 0.66) / 0.34));
-    const bg = gsap.utils.interpolate('#dad1c5', '#1c140e', gsap.utils.clamp(0, 1, (p - 0.5) / 0.07));
-    el.style.background = bg;
+    // no colour fade through grey: the travertine holds until her render has covered the frame
+    const rv = gsap.utils.clamp(0, 1, (p - 0.56) / 0.12);
+    el.style.background = rv >= 1 ? '#1c140e' : '#dad1c5';
+    const ink = gsap.utils.interpolate('#2a2119', '#f3ebdf', gsap.utils.clamp(0, 1, (rv - 0.3) / 0.3));
     lines.forEach((li, i) => {
       const a = [0.02, 0.2, 0.44][i], b = [0.17, 0.4, 0.66][i];
       const o = gsap.utils.clamp(0, 1, Math.min((p - a) / 0.04, (b - p) / 0.04));
       li.style.opacity = String(o); li.style.transform = `translateY(${(1 - o) * 14}px)`;
-      li.style.color = p > 0.5 ? '#f3ebdf' : '#2a2119';
+      li.style.color = ink;
     });
-    const rv = gsap.utils.clamp(0, 1, (p - 0.56) / 0.12);
     render.style.opacity = String(rv > 0 ? 1 : 0);
     render.style.clipPath = `circle(${rv * 120}% at 34% 52%)`;
     q('.peak-title').style.opacity = String(gsap.utils.clamp(0, 1, (p - 0.86) / 0.06));
