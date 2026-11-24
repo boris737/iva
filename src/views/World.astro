@@ -146,6 +146,7 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
   :global(.world.live.past) .w-canvas, :global(.world.live.past) .w-scrim, :global(.world.live.past) .st-copy { visibility: hidden !important; }
   :global(.world.live) .st { display: block; height: var(--st-h, 150svh); padding: 0; border: 0; }
   :global(.world.live) .st-still { display: none; }
+  :global(.world.live) .st-copy > * { will-change: opacity, transform; }
   :global(.world.live) .st-copy { position: fixed; z-index: 2; left: var(--pad); top: 50%; translate: 0 -50%; width: min(34rem, 40vw);
     opacity: 0; visibility: hidden; text-shadow: 0 2px 24px rgba(10, 6, 3, .6); will-change: opacity, transform; }
   :global(.world.live) .st-arrival .st-copy { width: min(60rem, 80vw); top: auto; bottom: clamp(48px, 12svh, 140px); translate: 0 0; }
@@ -178,8 +179,13 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
         const d = S - i;                                    // 0 = resting at this station
         const o = Math.max(0, Math.min(1, Math.min((d + 0.18) / 0.16, (0.4 - d) / 0.12)));
         const last = i === secs.length - 1 ? Math.max(0, Math.min(1, (d + 0.18) / 0.16)) : o;
-        c.style.opacity = String(last); c.style.visibility = last > 0.01 ? 'visible' : 'hidden';
-        c.style.transform = `translate3d(0,${((1 - last) * (d < 0 ? 22 : -16)).toFixed(1)}px,0)`;
+        c.style.opacity = last > 0.01 ? '1' : '0'; c.style.visibility = last > 0.01 ? 'visible' : 'hidden';
+        // each line arrives a beat after the one above it, and leaves upward together
+        [...c.children].forEach((ch, j) => {
+          const o = d < 0 ? Math.max(0, Math.min(1, last * 1.6 - j * 0.14)) : last;
+          (ch as HTMLElement).style.opacity = String(o);
+          (ch as HTMLElement).style.transform = `translate3d(0,${((1 - o) * (d < 0 ? 26 : -18)).toFixed(1)}px,0)`;
+        });
       });
     };
     addEventListener('scroll', paint, { passive: true }); addEventListener('resize', paint); paint();

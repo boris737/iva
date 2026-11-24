@@ -37,7 +37,8 @@ function inkMaterial(tex: THREE.Texture, color: THREE.Color, strength = 1) {
     fragmentShader: `uniform sampler2D map; uniform vec3 color; uniform float k; uniform float strength; varying vec2 vUv;
       void main(){ vec4 t = texture2D(map, vUv); float lum = dot(t.rgb, vec3(.299,.587,.114));
         float ink = smoothstep(.05, .55, 1. - lum) * t.a; float edge = smoothstep(0.,.04,vUv.x)*smoothstep(1.,.96,vUv.x)*smoothstep(0.,.04,vUv.y)*smoothstep(1.,.96,vUv.y);
-        gl_FragColor = vec4(color * ink * strength * k * edge, 1.); }`,
+        float d = k * 1.18 - .09; float drawn = 1. - smoothstep(d - .06, d, vUv.x); float pen = exp(-pow((vUv.x - d) * 38., 2.)) * step(.001, k) * (1. - step(.999, k));
+        gl_FragColor = vec4(color * ink * edge * strength * (drawn * min(1., k * 1.6) + pen * 2.2), 1.); }`,
   });
 }
 
@@ -84,7 +85,8 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
 
   // --- stations
   const GAP = 46;
-  type Built = { focus: THREE.Vector3; side: number; size: number; video?: HTMLVideoElement; ink: THREE.ShaderMaterial[]; group: THREE.Group; slabMat?: THREE.MeshBasicMaterial; massing?: THREE.Group };
+  type Built = { focus: THREE.Vector3; side: number; size: number; w: number; video?: HTMLVideoElement; ink: THREE.ShaderMaterial[]; group: THREE.Group; slabMat?: THREE.MeshBasicMaterial; massing?: THREE.Group;
+    sheen?: THREE.Mesh; halo?: THREE.Mesh; pool?: THREE.Mesh; lit: number; w0?: number };
   const built: Built[] = [];
   const videos: HTMLVideoElement[] = [];
 
@@ -114,7 +116,14 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
     halo.position.set(0, h / 2 + 1.2, -0.6); g.add(halo);
     const pool = new THREE.Mesh(new THREE.PlaneGeometry(w * 1.6, w * 0.9), new THREE.MeshBasicMaterial({ map: glow, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending }));
     pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.05, w * 0.28); g.add(pool);
-    return { mat, v, w, h };
+    // a sheen that sweeps across the glass once as the slab lights up (a band inside the slab's own rectangle)
+    const sheenMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      uniforms: { x: { value: -1 }, a: { value: 0 } },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }',
+      fragmentShader: 'uniform float x; uniform float a; varying vec2 vUv; void main(){ float d = (vUv.x + vUv.y * .35) - x; float b = exp(-d*d*90.); gl_FragColor = vec4(vec3(1.,.93,.84) * b * a * .22, 1.); }' });
+    const sheen = new THREE.Mesh(new THREE.PlaneGeometry(w, h), sheenMat); sheen.position.set(0, h / 2 + 1.2, 0.02); g.add(sheen);
+    mat.color.setScalar(0.32); (halo.material as THREE.MeshBasicMaterial).userData.base = 0.16; (pool.material as THREE.MeshBasicMaterial).userData.base = 0.22;
+    return { mat, v, w, h, sheen, halo, pool };
   };
 
   const floorInk = async (g: THREE.Group, url: string, aspect: number, width: number, z: number, color = RED, strength = 1.4) => {
@@ -143,7 +152,7 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
   for (let i = 0; i < stations.length; i++) {
     const s = stations[i]; const g = new THREE.Group(); scene.add(g);
     const side = s.side ?? (i % 2 ? -1 : 1);
-    const b: Built = { focus: new THREE.Vector3(), side, size: 10, ink: [], group: g };
+    const b: Built = { focus: new THREE.Vector3(), side, size: 10, w: 10, ink: [], group: g, lit: 0 };
     if (s.kind === 'arrival') {
       g.position.set(0, 0, 30); b.focus.set(0, 6, -60); b.size = 40;
     } else if (s.kind === 'close') {
@@ -154,7 +163,7 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
       if (s.kind === 'slab' || s.kind === 'iva') {
         const h = s.kind === 'iva' ? 10 : 9.5;
         const r = await slab(g, s.img, s.video, s.aspect ?? 1.4, h);
-        b.slabMat = r.mat; b.video = r.v; b.size = Math.max(r.w, r.h * 1.4);
+        b.slabMat = r.mat; b.video = r.v; b.size = Math.max(r.w, r.h * 1.4); b.w = r.w; b.sheen = r.sheen; b.halo = r.halo; b.pool = r.pool; b.w0 = r.w;
         b.focus.set(x, h / 2 + 1.2, z);
         if (s.floor) b.ink.push(await floorInk(g, s.floor, s.floorAspect ?? 1.4, Math.min(22, r.w * 1.25), r.w * 0.55 + 4));
         if (s.logo) b.ink.push(await floorInk(g, s.logo, s.logoAspect ?? 3, 18, 8, WARM, 0.9));
@@ -168,7 +177,7 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
         const lamp = new THREE.PointLight(0xffb070, 140, 34, 1.6); lamp.position.set(-3, 9, 7); g.add(lamp);
         const lamp2 = new THREE.PointLight(0xffd6a8, 40, 30, 1.8); lamp2.position.set(6, 4, 9); g.add(lamp2);
         if (s.logo) b.ink.push(await floorInk(g, s.logo, s.logoAspect ?? 1, 11, 9, WARM, 0.9));
-        b.focus.set(x, 4, z); b.size = 16;
+        b.focus.set(x, 4, z); b.size = 16; b.w = 16;
       }
     }
     built.push(b);
@@ -185,15 +194,33 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
     // distance so the slab fills ~62% of the height (desktop) or ~44% (phone, copy sits below)
     const need = mobile ? b.size / 1.4 / 0.42 : b.size / 1.4 / 0.66;
     let d = need / (2 * Math.tan(vfov / 2)); if (!mobile && a < 1.3) d *= 1.15;
+    if (mobile) { const hf = 2 * Math.atan(Math.tan(vfov / 2) * a); d = Math.max(d, (b.w / 0.9) / (2 * Math.tan(hf / 2))); }
     const dir = new THREE.Vector3(Math.sin(-b.side * 0.18), 0, Math.cos(-b.side * 0.18));
     const pos = f.clone().addScaledVector(dir, d); pos.y += mobile ? 2.6 : 1.4;
     // desktop: push the slab to the right third so the copy has the left; phone: push it up
     const right = new THREE.Vector3(dir.z, 0, -dir.x);
     const at = f.clone();
-    if (mobile) at.y -= b.size / 1.4 * 0.36; else at.addScaledVector(right, -b.size * 0.24);
+    if (mobile) at.y -= Math.tan(vfov / 2) * d * 0.42; else at.addScaledVector(right, -b.size * 0.24);
     return { pos, at };
   };
   let views = stations.map((_, i) => view(i));
+  let posCurve: THREE.CatmullRomCurve3, atCurve: THREE.CatmullRomCurve3;
+  // between two stations the camera swings out to the open side of the slab it is leaving and rises a
+  // little, so it never flies through a panel; it already turns towards the next one on the way
+  const curves = () => {
+    const P: THREE.Vector3[] = [], A: THREE.Vector3[] = [];
+    views.forEach((v, i) => {
+      P.push(v.pos); A.push(v.at);
+      if (i === views.length - 1) return;
+      const nb = views[i + 1], b = built[i], g = b.group.position;
+      const mid = v.pos.clone().lerp(nb.pos, 0.5);
+      if (stations[i].kind !== 'arrival') { mid.x = g.x - b.side * (mobile ? 9 : 16); mid.z = Math.min(mid.z, g.z + 6); }
+      mid.y = Math.max(mid.y, 13);
+      P.push(mid); A.push(v.at.clone().lerp(nb.at, 0.7));
+    });
+    posCurve = new THREE.CatmullRomCurve3(P, false, 'centripetal'); atCurve = new THREE.CatmullRomCurve3(A, false, 'centripetal');
+  };
+  curves();
 
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -202,35 +229,40 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
 
   const resize = () => {
     const w = canvas.clientWidth, h = canvas.clientHeight; renderer.setSize(w, h, false);
-    cam.aspect = w / h; cam.updateProjectionMatrix(); views = stations.map((_, i) => view(i));
+    cam.aspect = w / h; cam.updateProjectionMatrix(); views = stations.map((_, i) => view(i)); curves();
   };
   new ResizeObserver(resize).observe(canvas); resize();
 
-  let S = 0; // continuous station index
+  let S = 0, Sd = 0; // scroll target and the eased value the camera actually follows
   const camPos = new THREE.Vector3(), camAt = new THREE.Vector3();
   const place = (s: number) => {
     const n = stations.length - 1; s = clamp(s, 0, n);
     const i = Math.min(n - 1, Math.floor(s)), f = s - i;
-    const t = inOut(clamp((f - 0.42) / 0.58));            // rest for the first 42% of each step, then travel
-    const A = views[i], B = views[i + 1];
-    camPos.lerpVectors(A.pos, B.pos, t); camAt.lerpVectors(A.at, B.at, t);
-    camPos.y += Math.sin(Math.PI * t) * 5;                // a soft rise mid-flight
+    const t = inOut(clamp((f - 0.22) / 0.78));            // a short rest at each station, then one continuous glide
+    posCurve.getPoint((i + t) / n, camPos); atCurve.getPoint((i + t) / n, camAt);
     return { i, t };
   };
 
   // things that wake up as the camera arrives
+  let time = 0;
   const reveal = () => {
     built.forEach((b, k) => {
-      const near = clamp(1 - Math.abs(S - k) / 0.9);
-      b.ink.forEach((m) => (m.uniforms.k.value = smooth(near)));
-      if (b.massing) b.massing.scale.y = Math.max(0.001, smooth(clamp((near - 0.2) / 0.8)) * 0.16);
+      const near = clamp(1 - Math.abs(Sd - k) / 0.9), e = smooth(near);
+      b.lit += (e - b.lit) * 0.08;
+      b.ink.forEach((m) => (m.uniforms.k.value = e));
+      if (b.massing) b.massing.scale.y = Math.max(0.001, smooth(clamp((near - 0.25) / 0.75)) * 0.16);
+      if (b.slabMat) b.slabMat.color.setScalar(0.32 + 0.68 * b.lit);
+      if (b.halo) (b.halo.material as THREE.MeshBasicMaterial).opacity = 0.05 + 0.13 * b.lit;
+      if (b.pool) (b.pool.material as THREE.MeshBasicMaterial).opacity = 0.06 + 0.2 * b.lit;
+      if (b.sheen) { const sw = clamp((near - 0.3) / 0.65), u = (b.sheen.material as THREE.ShaderMaterial).uniforms; u.x.value = lerp(-0.3, 1.5, sw); u.a.value = Math.sin(Math.PI * sw); }
+      if (b.slabMat || b.massing) b.group.position.y = Math.sin(time * 0.55 + k * 1.7) * 0.12;
       if (b.video && b.slabMat) {
-        const want = Math.abs(S - k) < 1.2;
+        const want = Math.abs(Sd - k) < 1.2;
         if (want && b.video.paused) { b.video.play().then(() => { b.slabMat!.map = (b.slabMat as any).__video; b.slabMat!.needsUpdate = true; }).catch(() => {}); }
         if (!want && !b.video.paused) b.video.pause();
       }
     });
-    const night = smooth(clamp((S - (stations.length - 2)) / 1));
+    const night = smooth(clamp((Sd - (stations.length - 2)) / 1));
     nightMat.opacity = night; horizonMat.opacity = 1 - night * 0.6;
     renderer.toneMappingExposure = 1.05 - night * 0.15;
   };
@@ -239,7 +271,8 @@ export async function mountWorld(canvas: HTMLCanvasElement, stations: Station[],
   const frame = (now: number) => {
     if (!running) return;
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    place(S);
+    time += dt; Sd += (S - Sd) * (1 - Math.exp(-dt * 3.4)); if (Math.abs(S - Sd) < 1e-4) Sd = S;
+    place(Sd);
     pointer.x += (pointer.tx - pointer.x) * 0.05; pointer.y += (pointer.ty - pointer.y) * 0.05;
     cam.position.copy(camPos).add(new THREE.Vector3(pointer.x * 2.2, -pointer.y * 1.2, 0));
     cam.lookAt(camAt);
