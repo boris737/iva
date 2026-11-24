@@ -90,16 +90,56 @@ function hand() {
   gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + dist() * (mob() ? 1 : 0.9), pin: el.querySelector('.hand-stage'), scrub: 0.5, invalidateOnRefresh: true } });
 }
 
-/* 5 · Rigour: each render opens along its own line: from the left edge, the bottom, the centre */
+/* 5 · Rigour: a drafting table. Each sheet lands as her drawing, a plotter line prints her render
+   over it from the top, then the next sheet lands on the pile. One pin, three projects. */
 function rigour() {
-  const from = ['inset(0 100% 0 0)', 'inset(100% 0 0 0)', 'inset(0 50% 0 50%)'];
-  document.querySelectorAll<HTMLElement>('[data-rg]').forEach((el, i) => {
-    const r = el.querySelector<HTMLElement>('.rg-render')!;
-    gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 85%', end: 'top 25%', scrub: 0.5 } })
-      .fromTo(r, { clipPath: from[i % 3] }, { clipPath: 'inset(0 0% 0 0%)', ease: 'power2.out' }, 0)
-      .from(el.querySelector('.rg-text'), { y: 40, opacity: 0, ease: 'power2.out' }, 0.2)
-      .from(el.querySelector('.rg-draw'), { y: 60, opacity: 0, ease: 'power2.out' }, 0.35);
-  });
+  const el = document.querySelector<HTMLElement>('[data-rigour]'); if (!el) return;
+  el.classList.add('live');
+  const rows = [...el.querySelectorAll<HTMLElement>('[data-rg]')].map((rg, i) => ({
+    rg, text: rg.querySelector<HTMLElement>('.rg-text')!, sheet: rg.querySelector<HTMLElement>('.rg-sheet')!,
+    photo: rg.querySelector<HTMLElement>('.rg-photo')!, scan: rg.querySelector<HTMLElement>('.rg-scan')!,
+    shade: rg.querySelector<HTMLElement>('.rg-shade')!, rest: [-0.7, 0.9, -0.35][i] ?? 0,
+  }));
+  const n = rows.length, cl = gsap.utils.clamp(0, 1);
+  const outExpo = (x: number) => (x >= 1 ? 1 : 1 - Math.pow(2, -10 * x));
+  const inOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const tilt = { x: 0, y: 0 };
+  let on = -1;
+  const update = (p: number) => {
+    const vh = innerHeight;
+    rows.forEach((r, i) => {
+      const t = p * n - i;                               // local time: <0 waiting, 0..1 own, >1 buried
+      const land = outExpo(cl(t / 0.2));                 // sheet slides onto the table
+      const plot = inOut(cl((t - 0.3) / 0.42));          // plotter prints the render top → bottom
+      const bury = cl(t - 1) ;                           // later sheets cover it
+      const y = (1 - land) * vh * 1.15 - bury * 18;
+      const rot = (1 - land) * 4 + r.rest;
+      const sc = 1 - Math.min(bury, 2) * 0.025;
+      r.sheet.style.transform = `perspective(1400px) translate3d(0,${y.toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg) scale(${sc.toFixed(4)}) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`;
+      r.photo.style.clipPath = `inset(0 0 ${((1 - plot) * 100).toFixed(2)}% 0)`;
+      r.scan.style.opacity = String(plot > 0 && plot < 1 ? 1 : 0);
+      r.scan.style.transform = `translateY(${(plot * r.sheet.offsetHeight).toFixed(1)}px)`;
+      r.shade.style.opacity = String(Math.min(0.55, bury * 0.45));
+      const last = i === n - 1;
+      const o = cl(Math.min((t - 0.06) / 0.14, last ? 1 : (0.98 - t) / 0.08));
+      r.text.style.opacity = String(o);
+      r.text.style.transform = `translate3d(0,${((1 - o) * (t < 0.5 ? 24 : -16)).toFixed(1)}px,0)`;
+    });
+    const cur = Math.min(n - 1, Math.floor(p * n * 0.9999));
+    if (cur !== on) { on = cur; rows.forEach((r, i) => { r.rg.classList.toggle('on', i === cur); r.text.inert = i !== cur; }); }
+  };
+  const st = { p: 0 };
+  gsap.to(st, { p: 1, ease: 'none', onUpdate: () => update(st.p), scrollTrigger: {
+    trigger: el, start: 'top top', end: () => '+=' + Math.round(innerHeight * (mob() ? 2.7 : 3.1)),
+    pin: el.querySelector('.rg-stage'), scrub: 0.6, invalidateOnRefresh: true,
+  } });
+  update(0);
+  if (fine) {   // the top sheet leans a little towards the pointer, like paper you could lift
+    const tx = gsap.quickTo(tilt, 'x', { duration: 0.8, ease: 'power3', onUpdate: () => update(st.p) });
+    const ty = gsap.quickTo(tilt, 'y', { duration: 0.8, ease: 'power3' });
+    el.addEventListener('pointermove', (e) => { tx((e.clientX / innerWidth - 0.5) * 3); ty(-(e.clientY / innerHeight - 0.5) * 3); });
+    el.addEventListener('pointerleave', () => { tx(0); ty(0); });
+  }
 }
 
 /* 6 · Touch: a warm lamp that follows the pointer; on touch screens it drifts with scroll */

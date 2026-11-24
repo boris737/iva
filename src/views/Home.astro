@@ -41,7 +41,9 @@ const sail = projects.find((p) => p.slug === 'quiet-sailing')!;
 const pick = ['sail-sketch-fish', 'sail-gallery', 'sail-sketch-museum', 'sail-boats', 'sail-sketch-marina', 'sail-fire'];
 const sailTrack = [sail.hero, ...pick.map((n) => sail.gallery.find((g) => g.src.src.includes(n))!).filter(Boolean)];
 const rigour = ['xmall', 'health-center', 'public-building'].map((s) => projects.find((p) => p.slug === s)!);
-const pair: Record<string, number> = { 'xmall': 1, 'health-center': 0, 'public-building': 0 };
+// the drawing each render is plotted over, and how wide it may sit on the sheet (≤1.6× its native width)
+const sheetDraw: Record<string, string> = { 'xmall': 'xmall-axo', 'health-center': 'health-axo', 'public-building': 'public-section' };
+const drawOf = (p: (typeof projects)[number]) => p.gallery.find((g) => g.src.src.includes(sheetDraw[p.slug]))!;
 const voice = en
   ? 'A strong idea has to balance creativity with technical understanding.'
   : 'Силната идеја мора да ги балансира креативноста и техничкото разбирање.';
@@ -117,21 +119,30 @@ const mats = [walnut, travertine, concrete, plaster];
     </div>
   </section>
 
-  <!-- 5 · Rigour: three projects, each opening along a different line -->
-  <section class="rigour" aria-label={en ? 'More projects' : 'Повеќе проекти'}>
-    {rigour.map((p, i) => (
-      <article class:list={['rg', `rg-${i}`]} data-rg>
-        <a href={href(lang, `work/${p.slug}/`)} class="rg-link">
-          <div class="rg-render"><Image src={p.hero.src} format="webp" widths={[480, p.hero.src.width]} sizes="(max-width: 760px) 100vw, 60vw" alt={p.hero.alt[lang]} loading="lazy" /></div>
+  <!-- 5 · Rigour: a drafting table. Each project arrives as her drawing; a plotter line prints her render over it -->
+  <section class="rigour" data-rigour aria-label={en ? 'More projects' : 'Повеќе проекти'}>
+    <div class="rg-stage">
+      <p class="rg-kicker small">{en ? 'Three more, drawn before they were rendered' : 'Уште три, нацртани пред да бидат рендерирани'}</p>
+      {rigour.map((p, i) => { const d = drawOf(p); return (
+        <article class:list={['rg', `rg-${i}`]} data-rg>
           <div class="rg-text">
-            <h3 class="display">{p.name}</h3>
-            <p class="small">{p.type[lang]}, {p.location[lang]}{p.year ? `, ${p.year}` : ''}</p>
+            <h3 class="display"><a href={href(lang, `work/${p.slug}/`)}>{p.name}</a></h3>
+            <p class="small rg-meta">{p.type[lang]}, {p.location[lang]}{p.year ? `, ${p.year}` : ''}</p>
             <p class="rg-sum">{p.summary[lang]}</p>
+            <a class="link small" href={href(lang, `work/${p.slug}/`)} tabindex="-1" aria-hidden="true">{en ? 'Open the project' : 'Отвори го проектот'}</a>
           </div>
-          <figure class="rg-draw"><Image src={p.gallery[pair[p.slug]].src} format="webp" width={Math.min(560, p.gallery[pair[p.slug]].src.width)} alt={p.gallery[pair[p.slug]].alt[lang]} loading="lazy" /></figure>
-        </a>
-      </article>
-    ))}
+          <a class="rg-sheet" href={href(lang, `work/${p.slug}/`)} tabindex="-1" aria-hidden="true">
+            <div class="rg-paper">
+              <Image class="rg-draw" src={d.src} format="webp" width={d.src.width} alt="" loading="lazy" style={`--dw:${Math.round(d.src.width * 1.5)}px`} />
+              <p class="rg-block"><span>{p.name}</span><span>{p.location[lang]}</span><span>I. Hristova</span></p>
+            </div>
+            <div class="rg-photo"><Image src={p.hero.src} format="webp" widths={[480, p.hero.src.width]} sizes="(max-width: 760px) 92vw, 60vw" alt={p.hero.alt[lang]} loading="lazy" /></div>
+            <span class="rg-scan" aria-hidden="true"></span>
+            <span class="rg-shade" aria-hidden="true"></span>
+          </a>
+        </article>
+      ); })}
+    </div>
     <p class="wrap all"><a class="link" href={href(lang, 'work/')}>{en ? 'All five projects' : 'Сите пет проекти'}</a></p>
   </section>
 
@@ -257,29 +268,42 @@ const mats = [walnut, travertine, concrete, plaster];
     :global(.hand.live) .hand-track li { width: 74vw; }
   }
 
-  /* 5 · rigour */
-  .rigour { background: var(--umber); padding-block: clamp(40px, 6vw, 90px) clamp(72px, 10vw, 140px); }
-  .rg { padding: clamp(28px, 5vw, 72px) var(--pad); }
-  .rg-link { display: grid; grid-template-columns: 1.6fr 1fr; grid-template-rows: auto auto; gap: var(--gap) clamp(20px, 4vw, 64px); align-items: end; }
-  .rg-render { grid-row: 1 / span 2; overflow: hidden; }
-  .rg-render :global(img) { width: 100%; transition: transform .8s var(--ease-out); }
-  .rg-link:hover .rg-render :global(img) { transform: scale(1.025); }
+  /* 5 · rigour: static by default (no JS, reduced motion), a pinned drafting table when .live */
+  .rigour { background: var(--umber); padding-block: clamp(56px, 8vw, 120px) clamp(72px, 10vw, 140px); }
+  .rg-kicker { color: var(--muted); padding-inline: var(--pad); margin-bottom: clamp(24px, 4vw, 56px); }
+  .rg { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: clamp(24px, 4vw, 72px); align-items: center; padding: clamp(24px, 4vw, 56px) var(--pad); }
   .rg-text h3 { font-size: var(--t-h2); }
-  .rg-text .small { color: var(--muted); margin-top: 10px; }
-  .rg-sum { font-family: var(--serif); font-size: var(--t-lg); line-height: 1.4; margin-top: 18px; max-width: 32ch; color: #d3c9bb; }
-  .rg-draw { background: var(--trav); padding: 12px; }
-  .rg-draw :global(img) { width: 100%; mix-blend-mode: multiply; }
-  .rg-1 .rg-link { grid-template-columns: 1fr 1.6fr; }
-  .rg-1 .rg-render { grid-column: 2; }
-  .rg-1 .rg-text, .rg-1 .rg-draw { grid-column: 1; }
-  .rg-1 .rg-text { grid-row: 1; } .rg-1 .rg-draw { grid-row: 2; }
-  .rg-2 .rg-link { grid-template-columns: 1fr 1fr; }
+  .rg-text h3 a { color: inherit; }
+  .rg-meta { color: var(--muted); margin-top: 10px; }
+  .rg-sum { font-family: var(--serif); font-size: var(--t-lg); line-height: 1.4; margin: 18px 0 22px; max-width: 30ch; color: #d3c9bb; }
+  .rg-sheet { position: relative; display: block; aspect-ratio: 1.41; max-width: 1240px; background: var(--trav-hi); box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 30px 60px -30px rgba(0,0,0,.7), 0 8px 18px -10px rgba(0,0,0,.5); overflow: hidden; }
+  .rg-paper { position: absolute; inset: 0; display: grid; place-items: center; padding: 7% 9% 14%; }
+  .rg-paper :global(.rg-draw) { width: min(100%, var(--dw)); max-height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+  .rg-block { position: absolute; right: 3.5%; bottom: 4%; display: flex; gap: 0; font-size: var(--t-xs); letter-spacing: .04em; text-transform: uppercase; color: #6b5e50; border: 1px solid #b9ad9c; }
+  .rg-block span { padding: 5px 10px; border-left: 1px solid #b9ad9c; }
+  .rg-block span:first-child { border-left: 0; color: var(--red); }
+  .rg-photo { position: absolute; inset: 0; }
+  .rg-photo :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .rg-scan, .rg-shade { display: none; }
   .all { margin-top: 24px; }
+  @media (max-width: 760px) { .rg { grid-template-columns: 1fr; } .rg-block span:nth-child(2) { display: none; } }
+
+  /* live */
+  :global(.rigour.live) .rg-stage { position: relative; height: 100svh; overflow: hidden; }
+  :global(.rigour.live) .rg-kicker { position: absolute; top: clamp(76px, 12svh, 120px); left: 0; margin: 0; }
+  :global(.rigour.live) .rg { position: absolute; inset: 0; padding-top: clamp(110px, 18svh, 170px); padding-bottom: clamp(32px, 7svh, 72px); align-items: center; pointer-events: none; }
+  :global(.rigour.live) .rg-text { will-change: opacity, transform; opacity: 0; }
+  :global(.rigour.live) .rg.on .rg-text, :global(.rigour.live) .rg.on .rg-sheet { pointer-events: auto; }
+  :global(.rigour.live) .rg-sheet { justify-self: end; width: min(100%, calc((100svh - clamp(142px, 25svh, 242px)) * 1.41)); will-change: transform; transform: translateY(120svh); }
+  :global(.rigour.live) .rg-photo { clip-path: inset(0 0 100% 0); }
+  :global(.rigour.live) .rg-scan { display: block; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--red); box-shadow: 0 1px 0 rgba(255,255,255,.5), 0 -6px 14px -6px rgba(196,49,58,.45); opacity: 0; will-change: transform, opacity; }
+  :global(.rigour.live) .rg-shade { display: block; position: absolute; inset: 0; background: #0e0906; opacity: 0; will-change: opacity; }
   @media (max-width: 760px) {
-    .rg-link, .rg-1 .rg-link, .rg-2 .rg-link { grid-template-columns: 1fr; }
-    .rg-render, .rg-1 .rg-render { grid-row: auto; grid-column: auto; }
-    .rg-1 .rg-text, .rg-1 .rg-draw { grid-column: auto; grid-row: auto; }
-    .rg-draw { display: none; }
+    :global(.rigour.live) .rg { grid-template-rows: auto 1fr; align-content: start; gap: 22px; padding-top: clamp(96px, 15svh, 130px); }
+    :global(.rigour.live) .rg-sheet { justify-self: stretch; width: 100%; align-self: start; aspect-ratio: 1; max-height: calc(100svh - 360px); }
+    :global(.rigour.live) .rg-paper { padding: 10% 7% 20%; }
+    :global(.rigour.live) .rg-sum { font-size: var(--t-md); margin: 12px 0 0; }
+    :global(.rigour.live) .rg-text .link { display: none; }
   }
 
   /* 6 · touch */
