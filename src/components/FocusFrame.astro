@@ -26,18 +26,21 @@ const maxW = Math.round(src.width * 1.6);
   .ff-blur, .ff-frame, .ff-l1, .ff-l2 { display: none; }
   .ff-sharp :global(img) { width: 100%; height: 100%; object-fit: cover; }
 
-  /* live */
-  :global(.ff.is-live) { padding: 0; }
-  :global(.ff.is-live) .ff-stage { width: 100%; max-width: none; aspect-ratio: auto; height: 100svh; overflow: hidden; }
+  /* motion allowed: reserve the final stage from first paint (no layout shift when the effect switches on).
+     The sharp image is shown whole; JS then only adds blur, clip and frame. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ff { padding: 0; }
+    .ff-stage { width: 100%; max-width: none; aspect-ratio: auto; height: 100svh; overflow: hidden; background: var(--umber); }
+    .ff-sharp { position: absolute; left: 50%; top: 50%; width: min(100vw, var(--maxw), calc(100svh * var(--ar))); aspect-ratio: var(--ar); transform: translate(-50%, -50%); }
+  }
   :global(.ff.is-live) .ff-blur { display: block; position: absolute; inset: -40px; background-size: cover; background-position: center; filter: blur(22px) saturate(.85) brightness(.7); }
-  :global(.ff.is-live) .ff-sharp { position: absolute; left: 50%; top: 50%; width: min(100vw, var(--maxw), calc(100svh * var(--ar))); aspect-ratio: var(--ar); transform: translate(-50%, -50%);
-    clip-path: inset(var(--t, 12%) var(--r, 38%) var(--b, 12%) var(--l, 38%)); will-change: clip-path; }
+  :global(.ff.is-live) .ff-sharp { clip-path: inset(var(--t, 12%) var(--r, 38%) var(--b, 12%) var(--l, 38%)); will-change: clip-path; }
   :global(.ff.is-live) .ff-frame { display: block; position: absolute; border: 1px solid rgba(232, 225, 214, .85); pointer-events: none; }
   :global(.ff.is-live) .ff-l1, :global(.ff.is-live) .ff-l2 { display: block; position: absolute; left: var(--pad); font-family: var(--serif); font-style: italic; font-size: var(--t-h3); font-weight: 300; line-height: 1.1; color: var(--trav); max-width: 16ch; text-shadow: 0 2px 24px rgba(0,0,0,.4); }
   :global(.ff.is-live) .ff-l1 { bottom: calc(10% + 2.6em); }
   :global(.ff.is-live) .ff-l2 { bottom: 10%; font-size: var(--t-md); font-style: normal; font-family: var(--sans); }
-  @media (max-width: 760px) {
-    :global(.ff.is-live) .ff-stage { height: 78svh; }
+  @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+    .ff-stage { height: 78svh; }
     :global(.ff.is-live) .ff-sharp { width: calc(78svh * var(--ar)); }
     :global(.ff.is-live) .ff-l1 { font-size: 1.75rem; }
   }
