@@ -38,7 +38,7 @@ const planUrl = await L(planLines, 1300);
 const wood = await L(walnut, 1400);
 
 const sail = projects.find((p) => p.slug === 'quiet-sailing')!;
-const pick = ['sail-sketch-fish', 'sail-gallery', 'sail-sketch-museum', 'sail-boats', 'sail-sketch-marina', 'sail-fire'];
+const pick = ['sail-sketch-fish', 'sail-boats', 'sail-sketch-museum', 'sail-fire'];
 const sailTrack = [sail.hero, ...pick.map((n) => sail.gallery.find((g) => g.src.src.includes(n))!).filter(Boolean)];
 const rigour = ['xmall', 'health-center', 'public-building'].map((s) => projects.find((p) => p.slug === s)!);
 // the drawing each render is plotted over, and how wide it may sit on the sheet (≤1.6× its native width)
@@ -111,7 +111,7 @@ const mats = [walnut, travertine, concrete, plaster];
       <ul class="hand-track">
         {sailTrack.map((s, i) => (
           <li class:list={[s.kind, i % 3 === 1 && 'low']}>
-            <Image src={s.src} format="webp" widths={[480, s.src.width]} sizes="(max-width: 760px) 80vw, 46vw" alt={s.alt[lang]} loading="lazy" style={`max-width:${Math.round(s.src.width * 1.6)}px`} />
+            <Image src={s.src} format="webp" widths={[480, s.src.width]} sizes="(max-width: 760px) 90vw, 70vw" alt={s.alt[lang]} loading="lazy" style={`--hmax:${Math.round(s.src.height * 1.6)}px`} />
             <span>{s.kind === 'sketch' ? (en ? 'Hand sketch' : 'Скица') : s.kind === 'render' ? (en ? 'Render' : 'Рендер') : (en ? 'Drawing' : 'Цртеж')}</span>
           </li>
         ))}
@@ -254,18 +254,19 @@ const mats = [walnut, travertine, concrete, plaster];
   .hand-head .display { font-size: var(--t-h1); }
   .hand-head .small { max-width: 40ch; }
   .hand-track { list-style: none; padding: clamp(36px, 5vw, 64px) var(--pad) 0; margin: 0; display: flex; gap: clamp(20px, 3vw, 48px); align-items: start; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
-  .hand-track li { flex: 0 0 auto; width: min(46vw, 720px); scroll-snap-align: start; }
-  .hand-track li.low { margin-top: clamp(40px, 8vw, 120px); }
-  .hand-track li.sketch, .hand-track li.drawing { background: var(--trav-hi); padding: clamp(10px, 1.4vw, 20px); }
-  .hand-track :global(img) { width: 100%; height: auto; }
+  .hand-track li { flex: 0 0 auto; scroll-snap-align: start; --h: min(60svh, 560px); }
+  .hand-track li.sketch, .hand-track li.drawing { --h: min(34svh, 320px); background: var(--trav-hi); padding: clamp(12px, 1.6vw, 22px); box-shadow: 0 18px 40px -24px rgba(40, 28, 18, .45); align-self: center; rotate: -1.2deg; }
+  .hand-track li.sketch:nth-of-type(4n) { rotate: 1deg; }
+  .hand-track li.low { margin-top: clamp(40px, 8svh, 96px); }
+  .hand-track :global(img) { height: min(var(--h), var(--hmax)); width: auto; max-width: none; }
   .hand-track li.sketch :global(img) { mix-blend-mode: multiply; }
   .hand-track span { display: block; font-size: var(--t-xs); color: var(--muted-ink); margin-top: 8px; }
   :global(.hand.live) .hand-stage { height: 100svh; display: grid; align-content: center; padding-block: 0; }
-  :global(.hand.live) .hand-track { overflow: visible; scroll-snap-type: none; will-change: transform; }
+  :global(.hand.live) .hand-track { overflow: visible; scroll-snap-type: none; will-change: transform; align-items: center; }
   @media (max-width: 760px) {
     .hand-head { grid-template-columns: 1fr; }
-    .hand-track li { width: 80vw; }
-    :global(.hand.live) .hand-track li { width: 74vw; }
+    .hand-track li { --h: 46svh; }
+    .hand-track li.sketch, .hand-track li.drawing { --h: 30svh; }
   }
 
   /* 5 · rigour: static by default (no JS, reduced motion), a pinned drafting table when .live */

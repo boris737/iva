@@ -87,7 +87,7 @@ function hand() {
   el.classList.add('live');
   const track = el.querySelector<HTMLElement>('.hand-track')!;
   const dist = () => Math.max(0, track.scrollWidth - innerWidth);
-  gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + dist() * (mob() ? 1 : 0.9), pin: el.querySelector('.hand-stage'), scrub: 0.5, invalidateOnRefresh: true } });
+  gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + dist() * (mob() ? 0.8 : 0.62), pin: el.querySelector('.hand-stage'), scrub: 0.5, invalidateOnRefresh: true } });
 }
 
 /* 5 · Rigour: a drafting table. Each sheet lands as her drawing, a plotter line prints her render
