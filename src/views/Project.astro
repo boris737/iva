@@ -1,6 +1,7 @@
 ---
 import { Picture, Image, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import Massing from '../components/Massing.astro';
 import { projects, type Lang, type Project } from '../data/projects';
 import { ui, href } from '../data/site';
 interface Props { lang: Lang; p: Project }
@@ -33,6 +34,8 @@ const kind = (k: string) => (k === 'render' ? t.render : k === 'sketch' ? t.sket
       </dl>
       <div class="prose">{p.body[lang].map((para) => <p>{para}</p>)}</div>
     </div>
+
+    {p.slug === 'aura-theatre' && <Massing lang={lang} />}
 
     <div class="gallery wrap">
       {p.gallery.map((s) => (

@@ -1,0 +1,53 @@
+---
+// Interactive 3D massing of Aura Theatre. Static fallback is her own axonometry drawing.
+import { Image } from 'astro:assets';
+import axo from '../assets/work/aura-axo.png';
+import type { Lang } from '../data/projects';
+interface Props { lang: Lang; title?: boolean }
+const { lang, title = true } = Astro.props;
+const en = lang === 'en';
+---
+<section class="massing on-light" data-massing aria-labelledby={title ? 'massing-t' : undefined}>
+  <div class="m-head wrap">
+    {title && <h2 class="display" id="massing-t">{en ? 'Turn it around' : 'Свртете ја'}</h2>}
+    <p class="small muted">{en ? 'Aura Theatre as a massing diagram: the glass pavilion, the curved neck, the long wing and the timber ring on the roof. Simplified from her plans, not to scale. Drag or use the arrow keys to turn it.' : 'Театар Аура како дијаграм на волумени: стаклениот павилјон, закривениот спој, долгото крило и дрвениот прстен на покривот. Поедноставено според нејзините основи, не во размер. Повлечете или користете ги стрелките за да ја свртите.'}</p>
+  </div>
+  <div class="m-stage" tabindex="0" role="img" aria-label={en ? 'Rotating 3D massing diagram of Aura Theatre in red line' : 'Ротирачки 3Д дијаграм на волумени на Театар Аура во црвена линија'}>
+    <Image class="m-fallback" src={axo} format="webp" widths={[277]} sizes="420px" alt="" loading="lazy" />
+  </div>
+</section>
+
+<style>
+  .massing { padding-block: clamp(64px, 9vw, 130px); }
+  .m-head { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 6vw; align-items: end; }
+  .m-head .small { max-width: 52ch; }
+  .m-stage { position: relative; height: min(78svh, 760px); margin-top: clamp(16px, 3vw, 40px); cursor: grab; touch-action: pan-y; display: grid; place-items: center; }
+  .m-stage:active { cursor: grabbing; }
+  .m-stage :global(canvas) { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .m-stage :global(.m-fallback) { width: min(420px, 80vw); mix-blend-mode: multiply; }
+  :global(.m-live) .m-stage :global(.m-fallback) { display: none; }
+  @media (max-width: 760px) { .m-head { grid-template-columns: 1fr; } .m-stage { height: 44svh; } }
+</style>
+
+<script>
+  import { whenIdle } from '../scripts/idle';
+  const sec = document.querySelector<HTMLElement>('[data-massing]');
+  const canWebGL = () => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } };
+  if (sec && canWebGL()) {
+    const io = new IntersectionObserver(async ([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      const stage = sec.querySelector<HTMLElement>('.m-stage')!;
+      const [{ mountMassing }, { gsap, ScrollTrigger }] = await Promise.all([import('../scripts/massing'), import('../scripts/scroll')]);
+      const m = mountMassing(stage);
+      sec.classList.add('m-live');
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) { m.set(1, 0.3); return; }
+      const st = { a: 0, s: 0 };
+      gsap.timeline({ scrollTrigger: { trigger: stage, start: 'top 85%', end: 'bottom 15%', scrub: 0.5 } })
+        .to(st, { a: 1.05, ease: 'none', duration: 0.6, onUpdate: () => m.set(st.a, st.s) }, 0)
+        .to(st, { s: 1, ease: 'none', duration: 1, onUpdate: () => m.set(st.a, st.s) }, 0);
+      ScrollTrigger.refresh();
+    }, { rootMargin: '600px 0px' });
+    whenIdle(() => io.observe(sec));
+  }
+</script>

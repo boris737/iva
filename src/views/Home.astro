@@ -3,6 +3,7 @@ import { Picture, Image, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import LightsOn from '../components/LightsOn.astro';
 import WorkList from '../components/WorkList.astro';
+import Massing from '../components/Massing.astro';
 import { ui, href } from '../data/site';
 import type { Lang } from '../data/projects';
 import hero from '../assets/work/aura-aerial.png';
@@ -43,6 +44,7 @@ const drawings = [
   </section>
 
   <LightsOn lang={lang} />
+  <Massing lang={lang} />
 
   <section class="section wrap" aria-labelledby="sel">
     <div class="head-row">
