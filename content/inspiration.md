@@ -18,3 +18,11 @@ they would read as her work.
 - Her own renders are golden-hour, which matches this mood. A dark warm frame makes them glow.
 - Generated media is limited to **material textures** (walnut, travertine, concrete, plaster). No rooms, no buildings.
 - Her interior work is the missing piece: 16/18 references are interiors, yet her folder has none.
+
+## Second batch (7 images, 19–25): layout and effect references
+- **25 Colette:** a blurred render with one sharp, framed vertical window. → *Focus frame* on project heroes: a sharp frame travels across a blurred render as you scroll, then opens to the full image. It also hides how small her originals are.
+- **24 VIS-ON:** reeded/fluted glass over half an image. → *Reeded-glass wipe* between dark and light sections.
+- **25/21 Walnut + red study, red lamp:** walnut with deep red, warm low light. Confirms palette C and her red as the single accent.
+- **20 Axonometric over a raw concrete room:** a line drawing laid over reality. Supports the drawing → building idea (Lights on, 3D massing).
+- **19 Floor plan with soft sun shadows on contour lines:** a drawing presentation style she likes.
+- **23 thefurn:** motion blur with widely spaced justified type. Mood only; the type treatment is not adopted.
