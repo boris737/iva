@@ -10,6 +10,7 @@
 //   higgsfield-ai/soul/v2/standard
 //   kling-video/v2.5-turbo/standard/image-to-video
 // --image uploads a local file and passes its URL as `image_url`.
+// --refs a.png,b.png uploads files and passes them as `image_urls` (edit models).
 //
 // Budget: the spend log plus pending jobs plus this job must stay <= CAP_USD.
 // Any job estimated above ASK_USD needs --yes (only after Boris has OK'd the price).
@@ -153,14 +154,16 @@ async function finish(j) {
   console.log(`  total spent $${spent().toFixed(3)} / $${CAP_USD}`);
 }
 
-async function run(endpoint, params, { image, name, yes }) {
+async function run(endpoint, params, { image, refs, name, yes }) {
   if (!params.prompt) die('params.prompt is required');
-  const usd = await estimate(endpoint, image ? { ...params, image_url: 'https://example.com/placeholder.jpg' } : params);
+  const ph = 'https://example.com/placeholder.jpg';
+  const usd = await estimate(endpoint, { ...params, ...(image ? { image_url: ph } : {}), ...(refs ? { image_urls: refs.map(() => ph) } : {}) });
   const committed = spent() + reserved();
   console.log(`estimate $${usd.toFixed(3)} · spent+pending $${committed.toFixed(3)} · cap $${CAP_USD}`);
   if (committed + usd > CAP_USD) die(`would exceed $${CAP_USD} cap. Not submitted.`);
   if (usd > ASK_USD && !yes) die(`over $${ASK_USD}: needs Boris's OK, then re-run with --yes. Not submitted.`);
   if (image) params = { ...params, image_url: await upload(image) };
+  if (refs) { const urls = []; for (const r of refs) urls.push(await upload(r)); params = { ...params, image_urls: urls }; }
   const key = crypto.randomUUID();
   const r = await api('POST', `/${endpoint}`, params, { 'Idempotency-Key': key });
   const j = { endpoint, params, cost: usd, key, name: name || endpoint.split('/')[0], request_id: r.request_id, status_url: r.status_url };
@@ -175,7 +178,7 @@ const flag = (f) => { const i = rest.indexOf(f); return i >= 0 ? rest[i + 1] : u
 const params = () => { try { return JSON.parse(json); } catch { die('second argument must be JSON params'); } };
 
 if (cmd === 'estimate') console.log(`$${(await estimate(endpoint, params())).toFixed(4)}`);
-else if (cmd === 'run') await run(endpoint, params(), { image: flag('--image'), name: flag('--name'), yes: rest.includes('--yes') });
+else if (cmd === 'run') await run(endpoint, params(), { image: flag('--image'), refs: flag('--refs')?.split(','), name: flag('--name'), yes: rest.includes('--yes') });
 else if (cmd === 'resume') for (const j of readPending()) await finish(j);
 else if (cmd === 'spend') console.log(`spent $${spent().toFixed(3)} · pending $${reserved().toFixed(3)} · cap $${CAP_USD}`);
 else die('usage: hf.mjs estimate|run|resume|spend …');

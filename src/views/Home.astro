@@ -1,0 +1,319 @@
+---
+// Home, rebuilt in scroll-craft style. See scrollcraft/builds/iva/BRIEF.md for the journey,
+// feeling curve and score. Every building on this page is Iva's; generated media is
+// limited to the empty park plates (day/night), material samples and a motion study of her render.
+import { Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { ui, href, contact } from '../data/site';
+import { projects, type Lang } from '../data/projects';
+import plate from '../assets/hero/plate.png';
+import plateNight from '../assets/hero/plate-night.png';
+import building from '../assets/hero/building.png';
+import fg from '../assets/hero/fg.png';
+import plan from '../assets/work/aura-plan-ground.png';
+import planLines from '../assets/work/aura-plan-lines.png';
+import axo from '../assets/work/aura-axo.png';
+import aura from '../assets/work/aura-aerial.png';
+import mark from '../assets/hrist-mark-charcoal.png';
+import walnut from '../assets/tex/walnut.png';
+import travertine from '../assets/tex/travertine.png';
+import concrete from '../assets/tex/concrete.png';
+import plaster from '../assets/tex/olive-plaster.png';
+import signature from '../assets/signature.svg?raw';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const en = lang === 'en';
+const t = ui[lang];
+
+const L = async (src: any, width: number) => (await getImage({ src, format: 'webp', width })).src;
+const hero = {
+  plate: [await L(plate, 900), await L(plate, 1692)],
+  building: [await L(building, 900), await L(building, 1692)],
+  fg: [await L(fg, 900), await L(fg, 1692)],
+  night: [await L(plateNight, 900), await L(plateNight, 1692)],
+};
+const set = (a: string[]) => `${a[0]} 900w, ${a[1]} 1692w`;
+const planUrl = await L(planLines, 1300);
+const wood = await L(walnut, 1400);
+
+const sail = projects.find((p) => p.slug === 'quiet-sailing')!;
+const pick = ['sail-sketch-fish', 'sail-gallery', 'sail-sketch-museum', 'sail-boats', 'sail-sketch-marina', 'sail-fire'];
+const sailTrack = [sail.hero, ...pick.map((n) => sail.gallery.find((g) => g.src.src.includes(n))!).filter(Boolean)];
+const rigour = ['xmall', 'health-center', 'public-building'].map((s) => projects.find((p) => p.slug === s)!);
+const pair: Record<string, number> = { 'xmall': 1, 'health-center': 0, 'public-building': 0 };
+const voice = en
+  ? 'A strong idea has to balance creativity with technical understanding.'
+  : 'Силната идеја мора да ги балансира креативноста и техничкото разбирање.';
+const peakLines = en
+  ? ['It starts as a line.', 'Then it stands up.', 'Then the lights come on.']
+  : ['Почнува како линија.', 'Потоа се исправа.', 'Потоа светлата се палат.'];
+const mats = [walnut, travertine, concrete, plaster];
+---
+<Base lang={lang} alt={en ? '/mk/' : '/'}>
+
+  <!-- 1 · Arrival: four planes, her name between the land and her building -->
+  <section class="hero" data-hero aria-label={en ? 'Iva Hristova, architect' : 'Ива Христова, архитект'}>
+    <div class="planes" aria-hidden="true">
+      <img class="pl sky" srcset={set(hero.plate)} sizes="120vw" alt="" fetchpriority="high" />
+      <img class="pl land" srcset={set(hero.plate)} sizes="120vw" alt="" />
+      <p class="pl name">{en ? <>Iva<br />Hristova</> : <>Ива<br />Христова</>}</p>
+      <img class="pl bldg" srcset={set(hero.building)} sizes="120vw" alt="" fetchpriority="high" />
+      <img class="pl fgl" srcset={set(hero.fg)} sizes="120vw" alt="" />
+      <div class="pl haze"></div>
+    </div>
+    <h1 class="sr">{en ? 'Iva Hristova, architect and interior designer' : 'Ива Христова, архитект и дизајнер на ентериер'}</h1>
+    <div class="hero-foot">
+      <p>{en ? 'Architect and interior designer. Skopje.' : 'Архитект и дизајнер на ентериер. Скопје.'}</p>
+      <p class="hero-cap">{en ? 'Aura Theatre, her design. The empty park behind it is a generated plate.' : 'Театар Аура, нејзин проект. Празниот парк зад него е генерирана подлога.'}</p>
+    </div>
+  </section>
+
+  <!-- 2 · Voice: her own sentence, lit word by word -->
+  <section class="voice" data-voice>
+    <div class="voice-stage">
+      <p class="voice-line serif-i">{voice.split(' ').map((w) => <span>{w} </span>)}</p>
+      <p class="voice-who small muted">{en ? 'Iva, from the introduction to her portfolio' : 'Ива, од воведот во нејзиното портфолио'}</p>
+    </div>
+  </section>
+
+  <!-- 3 · Peak: the plan rises into the building, then the building lights up -->
+  <section class="peak" data-peak data-plan={planUrl} aria-labelledby="peak-t">
+    <div class="peak-stage">
+      <div class="peak-static">
+        <figure><Image src={plan} format="webp" width={650} alt={en ? 'Aura Theatre ground floor plan' : 'Основа на приземје, Театар Аура'} /><figcaption>{peakLines[0]}</figcaption></figure>
+        <figure><Image src={axo} format="webp" width={277} alt={en ? 'Aura Theatre axonometry' : 'Аксонометрија, Театар Аура'} /><figcaption>{peakLines[1]}</figcaption></figure>
+      </div>
+      <canvas class="peak-3d" aria-hidden="true"></canvas>
+      <div class="peak-render">
+        <Image class="peak-img" src={aura} format="webp" widths={[480, 825]} sizes="100vw" alt={en ? 'Aura Theatre at sunset, lights on' : 'Театар Аура на зајдисонце, со вклучени светла'} loading="lazy" />
+        <canvas class="peak-seq" aria-hidden="true"></canvas>
+      </div>
+      <ol class="peak-lines" aria-hidden="true">{peakLines.map((l) => <li class="display">{l}</li>)}</ol>
+      <div class="peak-title">
+        <h2 class="display" id="peak-t">Aura Theatre</h2>
+        <p class="small">{en ? 'Theatre and cultural centre, Aerodrom, Skopje.' : 'Театар и културен центар, Аеродром, Скопје.'} <a class="link" href={href(lang, 'work/aura-theatre/')}>{en ? 'Open the project' : 'Отвори го проектот'}</a></p>
+        <p class="peak-note">{en ? 'Plan and render: Iva Hristova. 3D massing simplified from her plan. Motion study animated from her render.' : 'Основа и рендер: Ива Христова. 3Д волумените се поедноставени од нејзината основа. Движењето е анимирано од нејзиниот рендер.'}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · Hand: Quiet Sailing travels sideways, sketches as large as the renders -->
+  <section class="hand on-light" data-hand aria-labelledby="hand-t">
+    <div class="hand-stage">
+      <header class="hand-head">
+        <h2 class="display" id="hand-t">Quiet Sailing</h2>
+        <p class="small muted">{sail.summary[lang]}</p>
+        <a class="link small" href={href(lang, 'work/quiet-sailing/')}>{en ? 'Open the project' : 'Отвори го проектот'}</a>
+      </header>
+      <ul class="hand-track">
+        {sailTrack.map((s, i) => (
+          <li class:list={[s.kind, i % 3 === 1 && 'low']}>
+            <Image src={s.src} format="webp" widths={[480, s.src.width]} sizes="(max-width: 760px) 80vw, 46vw" alt={s.alt[lang]} loading="lazy" style={`max-width:${Math.round(s.src.width * 1.6)}px`} />
+            <span>{s.kind === 'sketch' ? (en ? 'Hand sketch' : 'Скица') : s.kind === 'render' ? (en ? 'Render' : 'Рендер') : (en ? 'Drawing' : 'Цртеж')}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5 · Rigour: three projects, each opening along a different line -->
+  <section class="rigour" aria-label={en ? 'More projects' : 'Повеќе проекти'}>
+    {rigour.map((p, i) => (
+      <article class:list={['rg', `rg-${i}`]} data-rg>
+        <a href={href(lang, `work/${p.slug}/`)} class="rg-link">
+          <div class="rg-render"><Image src={p.hero.src} format="webp" widths={[480, p.hero.src.width]} sizes="(max-width: 760px) 100vw, 60vw" alt={p.hero.alt[lang]} loading="lazy" /></div>
+          <div class="rg-text">
+            <h3 class="display">{p.name}</h3>
+            <p class="small">{p.type[lang]}, {p.location[lang]}{p.year ? `, ${p.year}` : ''}</p>
+            <p class="rg-sum">{p.summary[lang]}</p>
+          </div>
+          <figure class="rg-draw"><Image src={p.gallery[pair[p.slug]].src} format="webp" width={Math.min(560, p.gallery[pair[p.slug]].src.width)} alt={p.gallery[pair[p.slug]].alt[lang]} loading="lazy" /></figure>
+        </a>
+      </article>
+    ))}
+    <p class="wrap all"><a class="link" href={href(lang, 'work/')}>{en ? 'All five projects' : 'Сите пет проекти'}</a></p>
+  </section>
+
+  <!-- 6 · Touch: Hristdesign, a lamp you move across her materials -->
+  <section class="touch" id="studio" data-touch style={`--wood:url(${wood})`} aria-labelledby="touch-t">
+    <div class="touch-lamp" aria-hidden="true"></div>
+    <div class="touch-in wrap">
+      <div class="touch-copy">
+        <Image class="touch-mark" src={mark} width={150} alt="Hristdesign" loading="lazy" />
+        <h2 class="display" id="touch-t">{en ? 'Rooms, too.' : 'И простории.'}</h2>
+        <p class="lede">{t.studioText}</p>
+        <a class="btn" href={href(lang, 'contact/')}>{t.studioCta}</a>
+      </div>
+      <ul class="touch-mats">
+        {mats.map((m, i) => (
+          <li><Image src={m} format="webp" width={420} height={560} alt="" loading="lazy" style={i === 3 ? 'filter:saturate(.45) brightness(.85)' : undefined} /><span>{t.mat[i]}</span></li>
+        ))}
+      </ul>
+      <p class="touch-note small">{en ? 'Material textures are generated samples, not her projects.' : 'Текстурите на материјалите се генерирани примероци, не нејзини проекти.'}</p>
+    </div>
+  </section>
+
+  <!-- 7 · Close: the same park after dark, her building still lit, her signature -->
+  <section class="close" data-close aria-labelledby="close-t">
+    <div class="planes" aria-hidden="true">
+      <img class="pl land" srcset={set(hero.night)} sizes="110vw" alt="" loading="lazy" />
+      <img class="pl bldg" srcset={set(hero.building)} sizes="110vw" alt="" loading="lazy" />
+      <img class="pl fgl" srcset={set(hero.fg)} sizes="110vw" alt="" loading="lazy" />
+      <div class="pl night"></div>
+    </div>
+    <div class="close-in wrap">
+      <div class="sig" set:html={signature} role="img" aria-label={en ? 'Signature: Iva Hristova' : 'Потпис: Ива Христова'}></div>
+      <h2 class="display" id="close-t">{en ? 'Let’s build something.' : 'Ајде да изградиме нешто.'}</h2>
+      <ul class="close-ways">
+        <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>
+        <li><a href={`tel:${contact.phoneHref}`}>{contact.phone}</a></li>
+        <li><a href={`https://instagram.com/${contact.instagram}`} rel="noopener">@{contact.instagram}</a></li>
+        <li><a href="/iva-hristova-cv.pdf" download>CV (PDF)</a></li>
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* shared planes: every layer is the same image box, so cover-cropping keeps them registered */
+  .planes { position: absolute; inset: 0; overflow: hidden; }
+  .pl { position: absolute; inset: -6%; width: 112%; height: 112%; max-width: none; object-fit: cover; object-position: 38% 55%; will-change: transform; }
+
+  /* 1 · hero */
+  .hero { position: relative; height: 100svh; min-height: 620px; overflow: hidden; background: #2b1d14; }
+  .sky { -webkit-mask-image: linear-gradient(#000 34%, transparent 46%); mask-image: linear-gradient(#000 34%, transparent 46%); }
+  .land { -webkit-mask-image: linear-gradient(transparent 30%, #000 42%); mask-image: linear-gradient(transparent 30%, #000 42%); }
+  .name { inset: auto; left: var(--pad); right: var(--pad); top: 10svh; width: auto; height: auto; margin: 0;
+    font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: -0.045em; line-height: .8;
+    font-size: min(12.2vw, 21svh); color: #f3ebdf; text-shadow: 0 10px 60px rgba(60, 25, 5, .35); }
+  .haze { inset: 0; width: 100%; height: 100%; background:
+      radial-gradient(60% 45% at 8% 22%, rgba(255, 196, 120, .38), transparent 70%),
+      linear-gradient(180deg, transparent 60%, rgba(28, 20, 14, .55) 100%); mix-blend-mode: screen; pointer-events: none; }
+  .hero-foot { position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(18px, 4svh, 40px); display: flex; justify-content: space-between; align-items: end; gap: 20px; z-index: 3; font-size: var(--t-sm); color: #f3ebdf; text-shadow: 0 1px 14px rgba(0,0,0,.6); }
+  .hero-foot p:first-child { font-family: var(--display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.01em; }
+  .hero-cap { font-size: var(--t-xs); max-width: 34ch; text-align: right; opacity: .85; }
+  @media (max-width: 760px) {
+    .pl { object-position: 30% 60%; }
+    .name { top: 9svh; font-size: 17vw; }
+    .sky { -webkit-mask-image: linear-gradient(#000 40%, transparent 50%); mask-image: linear-gradient(#000 40%, transparent 50%); }
+    .land { -webkit-mask-image: linear-gradient(transparent 36%, #000 48%); mask-image: linear-gradient(transparent 36%, #000 48%); }
+    .hero-foot { flex-direction: column; align-items: start; }
+    .hero-cap { text-align: left; }
+  }
+
+  /* 2 · voice */
+  .voice { background: var(--umber); }
+  .voice-stage { min-height: 100svh; display: grid; align-content: center; padding: 18svh var(--pad); }
+  .voice-line { font-size: clamp(2.2rem, 1rem + 5.2vw, 6.2rem); line-height: 1.04; max-width: 17ch; }
+  .voice-line span { transition: opacity .2s; }
+  :global(.voice.live) .voice-line span { opacity: .14; }
+  .voice-who { margin-top: 32px; padding-left: .2em; }
+
+  /* 3 · peak */
+  .peak { position: relative; background: var(--trav); color: var(--ink); }
+  .peak-stage { position: relative; padding: clamp(72px, 10vw, 140px) var(--pad); display: grid; gap: 40px; }
+  .peak-static { display: grid; grid-template-columns: 2fr 1fr; gap: var(--gap); align-items: end; }
+  .peak-static :global(img) { width: 100%; mix-blend-mode: multiply; }
+  .peak-static figcaption { font-family: var(--display); font-weight: 700; font-size: var(--t-h3); letter-spacing: -0.03em; margin-top: 12px; color: var(--ink); }
+  .peak-3d, .peak-seq, .peak-lines { display: none; }
+  .peak-render :global(img) { width: 100%; }
+  .peak-title { color: var(--ink); }
+  .peak-title .display { font-size: var(--t-h1); }
+  .peak-title .small { margin-top: 12px; }
+  .peak-note { font-size: var(--t-xs); margin-top: 8px; opacity: .7; max-width: 60ch; }
+  :global(.peak.live) .peak-stage { height: 100svh; padding: 0; display: block; overflow: hidden; }
+  :global(.peak.live) .peak-static { display: none; }
+  :global(.peak.live) .peak-3d { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
+  :global(.peak.live) .peak-render { position: absolute; inset: 0; opacity: 0; clip-path: circle(0% at 34% 52%); }
+  :global(.peak.live) .peak-render :global(img), :global(.peak.live) .peak-seq { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 38% 55%; display: block; }
+  :global(.peak.live) .peak-lines { display: block; list-style: none; padding: 0; position: absolute; left: var(--pad); top: 15svh; margin: 0; }
+  :global(.peak.live) .peak-lines li { position: absolute; white-space: nowrap; font-size: clamp(2.2rem, 1rem + 4.6vw, 5.6rem); opacity: 0; }
+  :global(.peak.live) .peak-title { position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(20px, 5svh, 48px); color: #f3ebdf; opacity: 0; text-shadow: 0 2px 30px rgba(0,0,0,.5); }
+  @media (max-width: 760px) {
+    .peak-static { grid-template-columns: 1fr; }
+    :global(.peak.live) .peak-lines { top: 12svh; }
+    :global(.peak.live) .peak-lines li { white-space: normal; width: calc(100vw - 2 * var(--pad)); font-size: 2.4rem; }
+  }
+
+  /* 4 · hand */
+  .hand { overflow: hidden; }
+  .hand-stage { padding-block: clamp(72px, 10vw, 140px); }
+  .hand-head { padding-inline: var(--pad); display: grid; grid-template-columns: auto 1fr auto; gap: 12px 4vw; align-items: baseline; }
+  .hand-head .display { font-size: var(--t-h1); }
+  .hand-head .small { max-width: 40ch; }
+  .hand-track { list-style: none; padding: clamp(36px, 5vw, 64px) var(--pad) 0; margin: 0; display: flex; gap: clamp(20px, 3vw, 48px); align-items: start; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .hand-track li { flex: 0 0 auto; width: min(46vw, 720px); scroll-snap-align: start; }
+  .hand-track li.low { margin-top: clamp(40px, 8vw, 120px); }
+  .hand-track li.sketch, .hand-track li.drawing { background: var(--trav-hi); padding: clamp(10px, 1.4vw, 20px); }
+  .hand-track :global(img) { width: 100%; height: auto; }
+  .hand-track li.sketch :global(img) { mix-blend-mode: multiply; }
+  .hand-track span { display: block; font-size: var(--t-xs); color: var(--muted-ink); margin-top: 8px; }
+  :global(.hand.live) .hand-stage { height: 100svh; display: grid; align-content: center; padding-block: 0; }
+  :global(.hand.live) .hand-track { overflow: visible; scroll-snap-type: none; will-change: transform; }
+  @media (max-width: 760px) {
+    .hand-head { grid-template-columns: 1fr; }
+    .hand-track li { width: 80vw; }
+    :global(.hand.live) .hand-track li { width: 74vw; }
+  }
+
+  /* 5 · rigour */
+  .rigour { background: var(--umber); padding-block: clamp(40px, 6vw, 90px) clamp(72px, 10vw, 140px); }
+  .rg { padding: clamp(28px, 5vw, 72px) var(--pad); }
+  .rg-link { display: grid; grid-template-columns: 1.6fr 1fr; grid-template-rows: auto auto; gap: var(--gap) clamp(20px, 4vw, 64px); align-items: end; }
+  .rg-render { grid-row: 1 / span 2; overflow: hidden; }
+  .rg-render :global(img) { width: 100%; transition: transform .8s var(--ease-out); }
+  .rg-link:hover .rg-render :global(img) { transform: scale(1.025); }
+  .rg-text h3 { font-size: var(--t-h2); }
+  .rg-text .small { color: var(--muted); margin-top: 10px; }
+  .rg-sum { font-family: var(--serif); font-size: var(--t-lg); line-height: 1.4; margin-top: 18px; max-width: 32ch; color: #d3c9bb; }
+  .rg-draw { background: var(--trav); padding: 12px; }
+  .rg-draw :global(img) { width: 100%; mix-blend-mode: multiply; }
+  .rg-1 .rg-link { grid-template-columns: 1fr 1.6fr; }
+  .rg-1 .rg-render { grid-column: 2; }
+  .rg-1 .rg-text, .rg-1 .rg-draw { grid-column: 1; }
+  .rg-1 .rg-text { grid-row: 1; } .rg-1 .rg-draw { grid-row: 2; }
+  .rg-2 .rg-link { grid-template-columns: 1fr 1fr; }
+  .all { margin-top: 24px; }
+  @media (max-width: 760px) {
+    .rg-link, .rg-1 .rg-link, .rg-2 .rg-link { grid-template-columns: 1fr; }
+    .rg-render, .rg-1 .rg-render { grid-row: auto; grid-column: auto; }
+    .rg-1 .rg-text, .rg-1 .rg-draw { grid-column: auto; grid-row: auto; }
+    .rg-draw { display: none; }
+  }
+
+  /* 6 · touch */
+  .touch { position: relative; overflow: hidden; background: #3a2418 var(--wood) center / cover; color: var(--trav); --lx: 70%; --ly: 40%; }
+  .touch::before { content: ''; position: absolute; inset: 0; background: rgba(20, 12, 7, .62); }
+  .touch-lamp { position: absolute; inset: 0; background: radial-gradient(34vmax 34vmax at var(--lx) var(--ly), rgba(255, 190, 120, .42), transparent 65%); mix-blend-mode: soft-light; pointer-events: none; }
+  .touch-in { position: relative; display: grid; grid-template-columns: 1fr 1.25fr; gap: clamp(32px, 6vw, 96px); align-items: center; padding-block: clamp(80px, 11vw, 160px); }
+  .touch-copy :global(.touch-mark) { width: 92px; filter: invert(.92) sepia(.2); margin-bottom: 28px; }
+  .touch-copy .display { font-size: var(--t-h1); }
+  .touch-copy .lede { margin: 22px 0 30px; color: #e4d9ca; }
+  .touch-mats { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .touch-mats li:nth-child(even) { margin-top: 48px; }
+  .touch-mats :global(img) { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; box-shadow: 0 24px 50px -18px rgba(0,0,0,.6); transition: transform .5s var(--ease-out); }
+  .touch-mats li:hover :global(img) { transform: translateY(-6px); }
+  .touch-mats span { display: block; font-size: var(--t-xs); margin-top: 8px; color: #d6cabb; }
+  .touch-note { grid-column: 1 / -1; font-size: var(--t-xs); color: #b9ab99; }
+  @media (max-width: 760px) { .touch-in { grid-template-columns: 1fr; } .touch-mats { grid-template-columns: repeat(2, 1fr); } }
+
+  /* 7 · close */
+  .close { position: relative; min-height: 100svh; overflow: hidden; background: #141428; display: grid; align-items: end; }
+  .close .bldg { filter: brightness(.72) saturate(1.1); }
+  .close .fgl { filter: brightness(.45); }
+  .night { inset: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(10, 10, 30, .2) 0%, rgba(12, 10, 24, .1) 40%, rgba(14, 10, 18, .88) 82%); }
+  .close-in { position: relative; z-index: 2; padding-block: 18svh clamp(28px, 6svh, 64px); color: #f3ebdf; }
+  .sig { width: min(560px, 78vw); color: var(--red); filter: drop-shadow(0 2px 18px rgba(196, 49, 58, .35)); }
+  .sig :global(svg) { width: 100%; height: auto; }
+  .close-in .display { font-size: var(--t-h1); margin-top: 8px; max-width: 12ch; }
+  .close-ways { list-style: none; padding: 0; margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px 36px; font-size: var(--t-lg); }
+  .close-ways a { display: inline-block; padding-block: 8px; border-bottom: 1px solid rgba(243, 235, 223, .35); }
+  .close-ways a:hover { border-color: currentColor; }
+  @media (max-width: 760px) { .close-ways { flex-direction: column; gap: 4px; font-size: var(--t-md); } }
+</style>
+
+<script>
+  import { whenIdle } from '../scripts/idle';
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) whenIdle(() => import('../scripts/home').then((m) => m.initHome()));
+</script>
