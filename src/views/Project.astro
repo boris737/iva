@@ -63,7 +63,7 @@ const kind = (k: string) => (k === 'render' ? t.render : k === 'sketch' ? t.sket
 <style>
   .p-head { padding-top: clamp(110px, 16vh, 180px); padding-bottom: clamp(32px, 5vw, 64px); max-width: 1200px; }
   .back { display: inline-block; padding-block: 10px; margin-bottom: 18px; }
-  .back:hover { color: var(--trav); }
+  @media (hover: hover) and (pointer: fine) { .back:hover { color: var(--trav); } }
   .p-head .lede { margin-top: 24px; max-width: 46ch; color: #d3c9bb; }
   .p-hero { padding-inline: var(--pad); }
   .p-hero :global(img) { width: min(100%, 1100px); }
@@ -85,7 +85,7 @@ const kind = (k: string) => (k === 'render' ? t.render : k === 'sketch' ? t.sket
   .next { border-top: 1px solid var(--line); }
   .next a { display: grid; gap: 6px; padding-block: clamp(48px, 7vw, 96px); }
   .next .display { font-size: var(--t-h1); line-height: .95; transition: font-style .2s; }
-  .next a:hover .display { font-style: italic; }
+  @media (hover: hover) and (pointer: fine) { .next a:hover .display { font-style: italic; } }
   @media (max-width: 760px) {
     .p-body, .gallery { grid-template-columns: 1fr; }
     .p-hero { padding-inline: 0; }

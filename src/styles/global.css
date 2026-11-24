@@ -84,7 +84,7 @@ h3.display { font-size: var(--t-h3); line-height: 1.05; }
 .site-head {
   position: fixed; inset: 0 0 auto; z-index: 50;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 18px var(--pad);
+  padding: calc(18px + env(safe-area-inset-top, 0px)) var(--pad) 18px;
   transition: background-color .4s, transform .5s var(--ease-out);
 }
 .site-head.solid { background: rgba(28, 20, 14, 0.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
@@ -109,11 +109,17 @@ h3.display { font-size: var(--t-h3); line-height: 1.05; }
 .btn {
   display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 24px;
   background: var(--trav); color: var(--ink); font-size: var(--t-sm);
-  transition: background-color .2s;
+  transition: background-color .2s, transform 140ms var(--ease-out);
+  user-select: none; -webkit-user-select: none;
 }
-.btn:hover { background: #fff; }
+.btn:active { transform: scale(0.97); }
 .on-light .btn { background: var(--ink); color: var(--trav); }
-.on-light .btn:hover { background: #000; }
+a, button, [role="button"] { touch-action: manipulation; }
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover { background: #fff; }
+  .on-light .btn:hover { background: #000; }
+  .foot-grid a:hover { color: #fff; }
+}
 .link { border-bottom: 1px solid currentColor; padding-bottom: 2px; }
 
 /* captions */
@@ -123,7 +129,6 @@ figcaption, .cap { font-size: var(--t-xs); color: var(--muted); margin-top: 10px
 /* footer */
 .site-foot { border-top: 1px solid var(--line); padding-block: 56px 40px; }
 .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; align-items: end; }
-.foot-grid a:hover { color: #fff; }
 .foot-big { font-family: var(--display); font-weight: 600; letter-spacing: -0.02em; font-size: var(--t-h3); line-height: 1.1; max-width: 20ch; }
 .foot-list { list-style: none; padding: 0; display: grid; gap: 6px; font-size: var(--t-sm); }
 .foot-list a { display: inline-block; padding-block: 6px; }
