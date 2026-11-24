@@ -98,7 +98,14 @@ function logJob(j, status, cost, file) {
 // ---- steps
 async function estimate(endpoint, params) {
   const r = await api('POST', `/estimate/${endpoint}`, params);
-  const usd = parseFloat(r.usd);
+  let usd = parseFloat(r.usd);
+  if (!Number.isFinite(usd) && r.type === 'description') {
+    // e.g. "rates in USD per video second: 720p: $0.0315; 1080p: $0.0525"
+    const text = r.pricing_description || '';
+    const rates = [...text.matchAll(/(\d{3,4}p)\s*:\s*\$([\d.]+)/g)].map((m) => ({ res: m[1], usd: parseFloat(m[2]) }));
+    const chosen = rates.find((x) => x.res === params.resolution) || rates.sort((a, b) => b.usd - a.usd)[0];
+    if (chosen && /per video second/i.test(text)) usd = chosen.usd * (params.duration || 5); // highest rate when unsure
+  }
   if (!Number.isFinite(usd)) die(`no usd in estimate: ${JSON.stringify(r)}`);
   return usd;
 }
@@ -148,7 +155,7 @@ async function finish(j) {
 
 async function run(endpoint, params, { image, name, yes }) {
   if (!params.prompt) die('params.prompt is required');
-  const usd = await estimate(endpoint, params);
+  const usd = await estimate(endpoint, image ? { ...params, image_url: 'https://example.com/placeholder.jpg' } : params);
   const committed = spent() + reserved();
   console.log(`estimate $${usd.toFixed(3)} · spent+pending $${committed.toFixed(3)} · cap $${CAP_USD}`);
   if (committed + usd > CAP_USD) die(`would exceed $${CAP_USD} cap. Not submitted.`);

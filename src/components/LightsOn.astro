@@ -72,7 +72,7 @@ const t = ui[lang];
     const render = q('.lo-render')[0] as HTMLElement;
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + Math.round(innerHeight * (innerWidth < 760 ? 1.8 : 2.4)), pin: q('.lo-stage')[0], scrub: 0.6, invalidateOnRefresh: true },
+      scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + Math.round(innerHeight * (innerWidth < 760 ? 1.8 : 2.4)), pin: q('.lo-stage')[0], scrub: 0.6, invalidateOnRefresh: true, refreshPriority: 5 },
     });
     tl.to(q('.lo-sheet'), { scale: 1.03, duration: 0.2 })
       .to(q('.lo-1'), { opacity: 0, duration: 0.06 }, 0.18)
@@ -88,6 +88,7 @@ const t = ui[lang];
       .to(q('.lo-2'), { opacity: 0, duration: 0.05 }, 0.72)
       .to(q('.lo-title'), { opacity: 1, duration: 0.1 }, 0.78)
       .to({}, { duration: 0.08 });
+    ScrollTrigger.sort();
     ScrollTrigger.refresh();
   });
 </script>
