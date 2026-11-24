@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A · Drawing set</title>
+<link rel="stylesheet" href="node_modules/@fontsource-variable/archivo/wdth.css">
+<style>
+:root{
+  --paper:#FFFFFF; --ink:#1B1B1A; --red:#E2332B; --rose:#D8909B; --graphite:#8C8B87; --rule:#E4E3DF;
+  --pad:clamp(16px,3.3vw,48px);
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Archivo Variable",sans-serif;font-variation-settings:"wdth" 100;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+
+/* ---------- sheet frame ---------- */
+.sheet{position:relative;min-height:900px;padding:var(--pad);border-bottom:1px solid var(--rule)}
+.frame{position:absolute;inset:var(--pad);border:1.5px solid var(--ink);pointer-events:none}
+.grid{position:absolute;inset:var(--pad);display:grid;grid-template-columns:repeat(6,1fr);pointer-events:none;z-index:3;mix-blend-mode:multiply}
+.grid span{border-right:1px solid var(--rule)}
+.grid span:last-child{border:0}
+.gridnum{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--pad) - 18px);display:grid;grid-template-columns:repeat(6,1fr);font-size:11px;color:var(--graphite);font-variation-settings:"wdth" 75}
+.gridnum b{font-weight:400;text-align:center}
+
+nav{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:baseline;padding:22px 28px;font-size:15px;font-variation-settings:"wdth" 75}
+nav .who{font-weight:700;font-variation-settings:"wdth" 125;font-size:16px}
+nav ul{display:flex;gap:28px;list-style:none;padding:0}
+nav a{color:inherit;text-decoration:none}
+nav .lang{color:var(--graphite)}
+
+.hero{position:relative;display:grid;grid-template-columns:1fr 1.15fr;align-items:end;gap:24px;padding:24px 28px 0;height:calc(900px - 2*var(--pad) - 70px)}
+.name{font-weight:850;font-variation-settings:"wdth" 125;font-size:clamp(56px,9.6vw,150px);line-height:.84;letter-spacing:-.035em;align-self:start;margin-top:40px}
+.name .s{display:block}
+.lede{font-size:21px;line-height:1.38;max-width:30ch;margin:36px 0 0;font-variation-settings:"wdth" 88}
+.axo{align-self:center;position:relative;margin-right:-10px;margin-bottom:60px}
+.axo img{width:100%;mix-blend-mode:multiply}
+.axo figcaption{font-size:12px;color:var(--graphite);margin-top:8px;font-variation-settings:"wdth" 75}
+
+.titleblock{position:absolute;z-index:2;right:var(--pad);bottom:var(--pad);display:grid;grid-template-columns:auto auto;border-left:1.5px solid var(--ink);border-top:1.5px solid var(--ink);font-size:12px;font-variation-settings:"wdth" 75;background:var(--paper)}
+.titleblock div{padding:7px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.titleblock dt{color:var(--graphite)}
+.titleblock .big{grid-column:1/3;font-size:20px;font-weight:700;font-variation-settings:"wdth" 110}
+
+/* ---------- storyboard ---------- */
+.note{font-size:13px;color:#7A7A76;font-variation-settings:"wdth" 75;max-width:62ch;line-height:1.45}
+.note b{color:var(--ink);font-weight:600}
+.story{padding:56px var(--pad) 72px}
+.story h2{font-weight:800;font-variation-settings:"wdth" 125;font-size:40px;letter-spacing:-.02em;margin-bottom:10px}
+.frames{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:32px}
+.fr{border:1.5px solid var(--ink);aspect-ratio:16/10;position:relative;overflow:hidden;background:#fff}
+.fr .cap{position:absolute;left:12px;bottom:10px;font-size:12px;font-variation-settings:"wdth" 75;background:#fff;padding:2px 6px}
+.fr .pct{position:absolute;right:12px;top:10px;font-size:12px;color:var(--red);font-variation-settings:"wdth" 75}
+.f1 img{position:absolute;inset:8% 10%;width:80%;height:84%;object-fit:contain;-webkit-mask-image:linear-gradient(100deg,#000 52%,transparent 58%);mask-image:linear-gradient(100deg,#000 52%,transparent 58%)}
+.f2 img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.f2 .ghost{position:absolute;inset:8% 10%;width:80%;height:84%;object-fit:contain;mix-blend-mode:multiply;opacity:.9}
+.f3 img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.f3 .label{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;color:#fff;font-weight:800;font-variation-settings:"wdth" 125;font-size:30px;background:linear-gradient(transparent,rgba(0,0,0,.45))}
+
+/* ---------- index ---------- */
+.index{padding:40px var(--pad) 80px}
+.index h2{font-weight:800;font-variation-settings:"wdth" 125;font-size:40px;letter-spacing:-.02em;margin-bottom:24px}
+.row{display:grid;grid-template-columns:90px 1.4fr 1fr 1fr 70px 220px;align-items:center;gap:20px;border-top:1.5px solid var(--ink);padding:14px 0;font-size:16px}
+.row:last-child{border-bottom:1.5px solid var(--ink)}
+.row .no{color:var(--red);font-variation-settings:"wdth" 75}
+.row .t{font-weight:750;font-variation-settings:"wdth" 118;font-size:26px;letter-spacing:-.01em}
+.row .m{color:#55554F;font-variation-settings:"wdth" 85}
+.row img{width:220px;height:92px;object-fit:cover}
+.row.hot{background:linear-gradient(90deg,#FFF5F4,transparent)}
+
+@media (max-width:700px){
+  .sheet{min-height:844px}
+  .grid,.gridnum{grid-template-columns:repeat(3,1fr)}
+  .grid span:nth-child(n+4),.gridnum b:nth-child(n+4){display:none}
+  nav{padding:16px 14px}
+  nav ul li:not(.lang){display:none}
+  .hero{grid-template-columns:1fr;height:auto;padding:8px 14px 150px;gap:8px}
+  .name{font-size:16.5vw;margin-top:16px;font-variation-settings:"wdth" 112}
+  .lede{font-size:17px;margin-top:18px}
+  .axo{margin-top:8px}
+  .titleblock{font-size:11px}
+  .titleblock .big{font-size:16px}
+  .frames{grid-template-columns:1fr}
+  .row{grid-template-columns:44px 1fr;gap:6px 12px}
+  .row .m,.row .y{display:none}
+  .row img{grid-column:1/3;width:100%;height:150px}
+  .row .t{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<section class="sheet" aria-label="Hero">
+  <div class="grid" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="gridnum" aria-hidden="true"><b>1</b><b>2</b><b>3</b><b>4</b><b>5</b><b>6</b></div>
+  <div class="frame" aria-hidden="true"></div>
+  <nav>
+    <span class="who">Iva Hristova</span>
+    <ul><li>Work</li><li>Hristdesign</li><li>About</li><li>Contact</li><li class="lang">EN / МК</li></ul>
+  </nav>
+  <div class="hero">
+    <div>
+      <h1 class="name"><span class="s">Iva</span><span class="s">Hristova</span></h1>
+      <p class="lede">Architect and interior designer in Skopje. Theatres, clinics and a museum on Lake Ohrid, drawn down to the roof detail.</p>
+    </div>
+    <figure class="axo">
+      <img src="../../assets/work/aura-axo.png" alt="Red-line axonometry of Aura Theatre">
+      <figcaption>Aura Theatre, axonometry</figcaption>
+    </figure>
+  </div>
+  <dl class="titleblock">
+    <div class="big">Index of work</div>
+    <div><dt>Sheet</dt><dd>A-00</dd></div><div><dt>Projects</dt><dd>5</dd></div>
+    <div><dt>Location</dt><dd>Skopje, MK</dd></div><div><dt>Revision</dt><dd>2026</dd></div>
+  </dl>
+</section>
+
+<section class="story" aria-label="Signature moment">
+  <h2>Drawing to building</h2>
+  <p class="note"><b>Signature scroll moment, pinned for about 3 screens.</b> Scroll draws Aura Theatre's axonometry line by line (SVG stroke trace of her drawing). The lines fill in as her red massing model, then the red drains into the sunset render. Reduced motion shows the three states as a static sequence.</p>
+  <div class="frames">
+    <div class="fr f1"><img src="../../assets/work/aura-axo.png" alt=""><span class="pct">scroll 15%</span><span class="cap">Her line drawing traces itself</span></div>
+    <div class="fr f2"><img src="../../assets/work/aura-red.png" alt=""><span class="pct">scroll 55%</span><span class="cap">Massing fills in, her red model</span></div>
+    <div class="fr f3"><img src="../../assets/work/aura-aerial.png" alt=""><span class="pct">scroll 100%</span><span class="label">Aura Theatre</span></div>
+  </div>
+</section>
+
+<section class="index" aria-label="Projects">
+  <h2>Sheets</h2>
+  <div class="row hot"><span class="no">A-01</span><span class="t">Aura Theatre</span><span class="m">Theatre and park pavilion</span><span class="m">Aerodrom, Skopje</span><span class="y m">—</span><img src="../../assets/work/aura-pano-2.png" alt=""></div>
+  <div class="row"><span class="no">A-02</span><span class="t">Quiet Sailing</span><span class="m">Museum and marina</span><span class="m">Lake Ohrid</span><span class="y m">2025–26</span><img src="../../assets/work/sail-aerial.png" alt=""></div>
+  <div class="row"><span class="no">A-03</span><span class="t">XMall</span><span class="m">Mixed-use, 32,800 m²</span><span class="m">Aerodrom, Skopje</span><span class="y m">2026</span><img src="../../assets/work/xmall-aerial.png" alt=""></div>
+  <div class="row"><span class="no">A-04</span><span class="t">Health Center</span><span class="m">Public healthcare</span><span class="m">Skopje</span><span class="y m">—</span><img src="../../assets/work/health-aerial.png" alt=""></div>
+  <div class="row"><span class="no">A-05</span><span class="t">Public Building</span><span class="m">Civic offices</span><span class="m">Skopje</span><span class="y m">—</span><img src="../../assets/work/public-elev.png" alt=""></div>
+</section>
+</body>
+</html>
