@@ -2,15 +2,15 @@
   {
     "endpoint": "kling-video/v2.5-turbo/pro/image-to-video",
     "params": {
-      "prompt": "Same view, same glass buildings, same light. Very slow, steady camera dolly to the left along the reflecting pool. Clouds drift and reflect in the glass, water ripples softly, trees move in light wind. The architecture stays exactly as in the image.",
+      "prompt": "Same lakeside view, same buildings, same light. Very slow, steady camera glide forward along the shore. Lake water moves and sparkles, small waves on the shore, people walk on the paths, reeds and trees sway. The architecture stays exactly as in the image.",
       "duration": 5,
       "negative_prompt": "morphing, warping building, extra floors, new buildings, changed facade, cuts, shaky camera, text",
-      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/d2f96d28-c9c7-4881-8040-40fcfecbf0ad/932acaca-6c99-48ea-a5a7-4c2112e3e0b1.jpeg"
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/d2f96d28-c9c7-4881-8040-40fcfecbf0ad/5da19c1c-1277-44dc-bc7d-c8836bc49723.jpeg"
     },
     "cost": 0.2625,
-    "key": "a3bce06a-edb1-4a3b-8b02-aa876b7dd3ce",
-    "name": "public-drift",
-    "request_id": "01a20f06-97a6-7c8e-b350-710501cf3817",
-    "status_url": "https://api.higgsfield.ai/requests/01a20f06-97a6-7c8e-b350-710501cf3817/status"
+    "key": "2e0fba1d-f05f-4dfc-abab-154a119ae696",
+    "name": "sail-drift",
+    "request_id": "01a20f09-4002-7ed1-8f90-1569568f20da",
+    "status_url": "https://api.higgsfield.ai/requests/01a20f09-4002-7ed1-8f90-1569568f20da/status"
   }
 ]
