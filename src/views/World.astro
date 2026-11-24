@@ -21,6 +21,8 @@ import concrete from '../assets/tex/concrete.png';
 import plaster from '../assets/tex/olive-plaster.png';
 import signature from '../assets/signature.svg?raw';
 import nAura from '../assets/night/aura-aerial.jpg';
+import pano2 from '../assets/extra/aura-pano-2-169.jpg';
+import pano3 from '../assets/extra/aura-pano-3-169.jpg';
 import nSail from '../assets/night/sail-aerial.jpg';
 import nXm from '../assets/night/xmall-aerial.jpg';
 import nHc from '../assets/night/health-aerial.jpg';
@@ -42,7 +44,7 @@ const X = async (p: ReturnType<typeof P>, name: string, video: string | undefine
 const stations = [
   { kind: 'arrival' },
   { kind: 'slab', img: await U(aura.hero.src, 1600), video: '/media/aura.mp4', aspect: 1.382, floor: await U(planLines, 2048), floorAspect: 4.037, massing: true, side: 1, night: await N(nAura),
-    extras: [await X(aura, 'aura-auditorium', '/media/aura-auditorium.mp4', 1024 / 922)] },
+    extras: [{ img: await U(pano3, 1024), video: '/media/aura-pano-3.mp4', aspect: 16 / 9 }, await X(aura, 'aura-auditorium', '/media/aura-auditorium.mp4', 1024 / 922), { img: await U(pano2, 1024), video: '/media/aura-pano-2.mp4', aspect: 16 / 9 }] },
   { kind: 'iva', img: await U(portrait, 538), aspect: 0.75, logo: ivaL, logoAspect: 3.015, side: -1 },
   { kind: 'slab', img: await U(sail.hero.src, 1600), video: '/media/sail.mp4', aspect: 1.93, floor: await U(G(sail, 'sail-sketch-fish'), 692), floorAspect: 1.912, side: 1, night: await N(nSail),
     extras: [await X(sail, 'sail-fire', '/media/sail-fire.mp4', 1024 / 502), await X(sail, 'sail-gallery', '/media/sail-gallery.mp4', 1024 / 642)] },
