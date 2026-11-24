@@ -1,16 +1,1 @@
-[
-  {
-    "endpoint": "kling-video/v2.5-turbo/pro/image-to-video",
-    "params": {
-      "prompt": "Same cutaway drawing, same rooms, same light. Very slow steady camera push-in. The small figures of doctors and patients move a little, trees sway outside. The architecture stays exactly as in the image.",
-      "duration": 5,
-      "negative_prompt": "morphing, warping building, extra floors, new buildings, changed facade, changed furniture, cuts, shaky camera, text",
-      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/d2f96d28-c9c7-4881-8040-40fcfecbf0ad/64ac272a-b46b-4a73-a3cf-810553c9d07b.jpeg"
-    },
-    "cost": 0.2625,
-    "key": "ff31d1cf-48a7-4773-94dc-7907ee113c66",
-    "name": "health-cutaway-move",
-    "request_id": "01a20f33-8b0d-764e-8a42-90985622aa6b",
-    "status_url": "https://api.higgsfield.ai/requests/01a20f33-8b0d-764e-8a42-90985622aa6b/status"
-  }
-]
+[]
