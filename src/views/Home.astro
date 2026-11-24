@@ -19,6 +19,11 @@ import travertine from '../assets/tex/travertine.png';
 import concrete from '../assets/tex/concrete.png';
 import plaster from '../assets/tex/olive-plaster.png';
 import signature from '../assets/signature.svg?raw';
+import portrait from '../assets/portrait.png';
+import ivaLogo from '../assets/iva-logo-white.png';
+import hristLogo from '../assets/hrist-logo-white.png';
+import ChapterBar from '../components/ChapterBar.astro';
+import { about } from '../data/site';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -52,7 +57,7 @@ const mats = [walnut, travertine, concrete, plaster];
 <Base lang={lang} alt={en ? '/mk/' : '/'}>
 
   <!-- 1 · Arrival: four planes, her name between the land and her building -->
-  <section class="hero" data-hero aria-label={en ? 'Iva Hristova, architect' : 'Ива Христова, архитект'}>
+  <section class="hero" data-hero data-chapter={en ? "Aura Theatre" : "Театар Аура"} aria-label={en ? 'Iva Hristova, architect' : 'Ива Христова, архитект'}>
     <div class="planes" aria-hidden="true">
       <img class="pl sky" srcset={set(hero.plate)} sizes="120vw" alt="" fetchpriority="high" />
       <img class="pl land" srcset={set(hero.plate)} sizes="120vw" alt="" />
@@ -105,8 +110,29 @@ const mats = [walnut, travertine, concrete, plaster];
     </div>
   </section>
 
+  <!-- 3b · Iva: who drew all this -->
+  <section class="iva" data-iva data-chapter="Iva" aria-labelledby="iva-t">
+    <Image class="iva-mark" src={ivaLogo} format="webp" width={1400} alt="" aria-hidden="true" loading="lazy" />
+    <div class="iva-in wrap">
+      <figure class="iva-photo">
+        <Image src={portrait} format="webp" widths={[320, 538]} sizes="(max-width: 760px) 70vw, 30vw" alt={en ? 'Portrait of Iva Hristova' : 'Портрет на Ива Христова'} loading="lazy" />
+      </figure>
+      <div class="iva-copy">
+        <p class="small iva-kicker">{en ? 'Who drew this' : 'Кој го нацрта ова'}</p>
+        <h2 class="display" id="iva-t">{en ? 'Iva Hristova' : 'Ива Христова'}</h2>
+        <p class="iva-lead">{about[lang].bio[0]}</p>
+        <p class="iva-body">{about[lang].bio[1]}</p>
+        <ul class="iva-roles">
+          <li><span>{en ? 'Now' : 'Сега'}</span>{en ? 'Interior designer, Parallel Group, Skopje' : 'Дизајнер на ентериер, Parallel Group, Скопје'}</li>
+          <li><span>{en ? 'Studio' : 'Студио'}</span>{en ? 'Founder, Hristdesign' : 'Основач, Hristdesign'}</li>
+        </ul>
+        <a class="link" href={href(lang, 'about/')}>{en ? 'More about her' : 'Повеќе за неа'}</a>
+      </div>
+    </div>
+  </section>
+
   <!-- 4 · Hand: Quiet Sailing travels sideways, sketches as large as the renders -->
-  <section class="hand on-light" data-hand aria-labelledby="hand-t">
+  <section class="hand on-light" data-hand data-chapter="Quiet Sailing" aria-labelledby="hand-t">
     <div class="hand-stage">
       <header class="hand-head">
         <h2 class="display" id="hand-t">Quiet Sailing</h2>
@@ -125,7 +151,7 @@ const mats = [walnut, travertine, concrete, plaster];
   </section>
 
   <!-- 5 · Rigour: a drafting table. Each project arrives as her drawing; a plotter line prints her render over it -->
-  <section class="rigour" data-rigour aria-label={en ? 'More projects' : 'Повеќе проекти'}>
+  <section class="rigour" data-rigour data-chapter={en ? "Drawings" : "Цртежи"} aria-label={en ? 'More projects' : 'Повеќе проекти'}>
     <div class="rg-stage">
       <p class="rg-kicker small">{en ? 'Three more, drawn before they were rendered' : 'Уште три, нацртани пред да бидат рендерирани'}</p>
       {rigour.map((p, i) => { const d = drawOf(p); return (
@@ -152,8 +178,9 @@ const mats = [walnut, travertine, concrete, plaster];
   </section>
 
   <!-- 6 · Touch: Hristdesign, a lamp you move across her materials -->
-  <section class="touch" id="studio" data-touch style={`--wood:url(${wood})`} aria-labelledby="touch-t">
+  <section class="touch" id="studio" data-touch data-chapter="Hristdesign" style={`--wood:url(${wood})`} aria-labelledby="touch-t">
     <div class="touch-lamp" aria-hidden="true"></div>
+    <Image class="touch-wm" src={hristLogo} format="webp" width={1200} alt="" aria-hidden="true" loading="lazy" />
     <div class="touch-in wrap">
       <div class="touch-copy">
         <Image class="touch-mark" src={mark} width={150} alt="Hristdesign" loading="lazy" />
@@ -171,7 +198,7 @@ const mats = [walnut, travertine, concrete, plaster];
   </section>
 
   <!-- 7 · Close: the same park after dark, her building still lit, her signature -->
-  <section class="close" data-close aria-labelledby="close-t">
+  <section class="close" data-close data-chapter={en ? "Contact" : "Контакт"} aria-labelledby="close-t">
     <div class="planes" aria-hidden="true">
       <img class="pl land" srcset={set(hero.night)} sizes="110vw" alt="" loading="lazy" />
       <img class="pl bldg" srcset={set(hero.building)} sizes="110vw" alt="" loading="lazy" />
@@ -189,6 +216,7 @@ const mats = [walnut, travertine, concrete, plaster];
       </ul>
     </div>
   </section>
+  <ChapterBar lang={lang} />
 </Base>
 
 <style>
@@ -265,6 +293,21 @@ const mats = [walnut, travertine, concrete, plaster];
     :global(.peak.live) .peak-lines li { white-space: normal; width: calc(100vw - 2 * var(--pad)); font-size: 2.4rem; }
   }
 
+  /* 3b · iva */
+  .iva { position: relative; overflow: hidden; background: #120d09; color: var(--trav); }
+  .iva :global(.iva-mark) { position: absolute; right: -6vw; top: 50%; width: min(78vw, 1200px); transform: translateY(-50%); opacity: .05; pointer-events: none; will-change: transform; }
+  .iva-in { position: relative; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(28px, 6vw, 110px); align-items: center; padding-block: clamp(80px, 12vw, 170px); }
+  .iva-photo { margin: 0; overflow: hidden; }
+  .iva-photo :global(img) { width: 100%; max-width: 538px; height: auto; display: block; filter: contrast(1.04); }
+  .iva-kicker { color: var(--muted); }
+  .iva-copy .display { font-size: var(--t-h1); margin-top: 10px; }
+  .iva-lead { font-family: var(--serif); font-size: var(--t-lg); line-height: 1.42; margin-top: 22px; max-width: 34ch; }
+  .iva-body { margin-top: 16px; max-width: 52ch; color: #cbbfb0; }
+  .iva-roles { list-style: none; padding: 0; margin: 28px 0; display: grid; gap: 10px; }
+  .iva-roles li { display: grid; grid-template-columns: 5.5rem 1fr; gap: 12px; padding-top: 10px; border-top: 1px solid rgba(218, 209, 197, .16); }
+  .iva-roles span { font-size: var(--t-xs); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-top: 3px; }
+  @media (max-width: 760px) { .iva-in { grid-template-columns: 1fr; } .iva-photo :global(img) { max-width: 78vw; } .iva :global(.iva-mark) { width: 120vw; right: -30vw; } }
+
   /* 4 · hand */
   .hand { overflow: hidden; }
   .hand-stage { padding-block: clamp(72px, 10vw, 140px); }
@@ -328,6 +371,7 @@ const mats = [walnut, travertine, concrete, plaster];
   /* 6 · touch */
   .touch { position: relative; overflow: hidden; background: #3a2418 var(--wood) center / cover; color: var(--trav); --lx: 70%; --ly: 40%; }
   .touch::before { content: ''; position: absolute; inset: 0; background: rgba(20, 12, 7, .62); }
+  .touch :global(.touch-wm) { position: absolute; left: -4vw; bottom: -8%; width: min(60vw, 900px); opacity: .1; pointer-events: none; }
   .touch-lamp { position: absolute; inset: 0; background: radial-gradient(34vmax 34vmax at var(--lx) var(--ly), rgba(255, 190, 120, .42), transparent 65%); mix-blend-mode: soft-light; pointer-events: none; }
   .touch-in { position: relative; display: grid; grid-template-columns: 1fr 1.25fr; gap: clamp(32px, 6vw, 96px); align-items: center; padding-block: clamp(80px, 11vw, 160px); }
   .touch-copy :global(.touch-mark) { width: 92px; filter: invert(.92) sepia(.2); margin-bottom: 28px; }

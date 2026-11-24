@@ -7,7 +7,7 @@ const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 export function initHome() {
   initScroll();
-  hero(); approach(); peak(); hand(); rigour(); touch(); close();
+  hero(); approach(); peak(); iva(); hand(); rigour(); touch(); close();
   ScrollTrigger.sort(); ScrollTrigger.refresh();
   addEventListener('load', () => ScrollTrigger.refresh());
 }
@@ -108,6 +108,16 @@ function peak() {
     update();
   }, { rootMargin: '150% 0px' });
   io.observe(el);
+}
+
+/* 3b · Iva: her mark drifts slower than the page; the portrait opens from the bottom like a print sliding out */
+function iva() {
+  const el = document.querySelector<HTMLElement>('[data-iva]'); if (!el) return;
+  gsap.fromTo(el.querySelector('.iva-mark'), { yPercent: -38 }, { yPercent: -62, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true } });
+  gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 75%', end: 'top 20%', scrub: 0.5 } })
+    .fromTo(el.querySelector('.iva-photo'), { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', ease: 'power2.out' }, 0)
+    .fromTo(el.querySelector('.iva-photo img'), { scale: 1.12 }, { scale: 1, ease: 'power2.out' }, 0)
+    .from(el.querySelectorAll('.iva-copy > *'), { y: 26, opacity: 0, stagger: 0.06, ease: 'power2.out' }, 0.15);
 }
 
 /* 4 · Hand: the track travels sideways while the frame holds */

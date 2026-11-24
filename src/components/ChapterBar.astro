@@ -1,0 +1,155 @@
+---
+// Floating liquid-glass chapter bar: where am I, how far along, and a menu to jump.
+// Glass: on Chromium the backdrop is refracted through an SVG displacement map that bends
+// light at the rim (like Apple's Liquid Glass); elsewhere it is frosted blur with a lit edge.
+import type { Lang } from '../data/projects';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const en = lang === 'en';
+---
+<nav class="cb" data-cb aria-label={en ? 'Chapters on this page' : 'Поглавја на страницата'}>
+  <svg class="cb-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="cb-glass" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feImage class="cb-map" result="map" preserveAspectRatio="none" />
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="soft" />
+      <feDisplacementMap in="soft" in2="map" scale="46" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+  <div class="cb-sheet" hidden>
+    <ol class="cb-list"></ol>
+  </div>
+  <button class="cb-pill" type="button" aria-expanded="false">
+    <span class="cb-now"><span class="cb-label">&nbsp;</span></span>
+    <span class="cb-count" aria-hidden="true"></span>
+    <span class="cb-track" aria-hidden="true"><span class="cb-fill"></span></span>
+    <span class="sr">{en ? 'Show chapters' : 'Прикажи поглавја'}</span>
+  </button>
+</nav>
+
+<style>
+  .cb { position: fixed; z-index: 60; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); translate: -50% 0;
+    display: grid; justify-items: center; gap: 8px; pointer-events: none; opacity: 0; transform: translateY(12px) scale(.96);
+    transition: opacity .35s var(--ease-out), transform .45s var(--ease-out); }
+  .cb.on { opacity: 1; transform: none; }
+  .cb.on > * { pointer-events: auto; }
+  .cb-defs { position: absolute; }
+  .cb-pill, .cb-sheet { position: relative; isolation: isolate; color: #fbf6ee;
+    background: linear-gradient(180deg, rgba(58, 42, 30, .34), rgba(30, 20, 12, .26));
+    -webkit-backdrop-filter: blur(16px) saturate(170%); backdrop-filter: blur(16px) saturate(170%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(255, 255, 255, .12), inset 0 0 0 1px rgba(255, 255, 255, .14),
+      0 10px 30px -10px rgba(10, 6, 3, .55), 0 2px 6px -2px rgba(10, 6, 3, .35); }
+  :global(.lg) .cb-pill { -webkit-backdrop-filter: url(#cb-glass) blur(2px) saturate(185%) brightness(1.05); backdrop-filter: url(#cb-glass) blur(2px) saturate(185%) brightness(1.05); }
+  .cb-pill { display: grid; grid-template-columns: auto auto; align-items: center; gap: 4px 14px; min-height: 52px; padding: 9px 22px 11px;
+    border: 0; border-radius: 999px; font: inherit; cursor: pointer; text-shadow: 0 1px 8px rgba(20, 12, 6, .45);
+    transition: transform 140ms var(--ease-out); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  .cb-pill:active { transform: scale(.97); }
+  .cb-now { display: block; overflow: hidden; height: 1.3em; font-family: var(--display); font-weight: 700; letter-spacing: -0.01em; font-size: var(--t-md); line-height: 1.3; min-width: 9ch; text-align: left; }
+  .cb-label { display: block; white-space: nowrap; }
+  .cb-count { white-space: nowrap; font-size: var(--t-xs); letter-spacing: .06em; opacity: .8; font-variant-numeric: tabular-nums; }
+  .cb-track { grid-column: 1 / -1; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .22); overflow: hidden; }
+  .cb-fill { display: block; height: 100%; width: 100%; background: #fbf6ee; transform-origin: 0 50%; transform: scaleX(0); }
+  .cb-sheet { border-radius: 26px; padding: 10px; min-width: min(300px, calc(100vw - 32px)); transform-origin: 50% 100%; }
+  .cb-list { list-style: none; margin: 0; padding: 0; display: grid; }
+  .cb-list :global(button) { all: unset; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; gap: 24px; width: 100%;
+    padding: 12px 14px; border-radius: 16px; cursor: pointer; font-family: var(--display); font-weight: 600; font-size: var(--t-md);
+    text-shadow: 0 1px 8px rgba(20, 12, 6, .45); touch-action: manipulation; }
+  .cb-list :global(button span) { font-family: var(--sans, inherit); font-weight: 400; font-size: var(--t-xs); opacity: .75; }
+  .cb-list :global(button[aria-current='true']) { background: rgba(255, 255, 255, .16); }
+  .cb-list :global(button:focus-visible), .cb-pill:focus-visible { outline: 2px solid #fbf6ee; outline-offset: 3px; }
+  @media (hover: hover) and (pointer: fine) { .cb-list :global(button:hover) { background: rgba(255, 255, 255, .12); } }
+  @media (prefers-reduced-transparency: reduce) {
+    .cb-pill, .cb-sheet, :global(.lg) .cb-pill, :global(.lg) .cb-sheet { background: #2a1f17; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .cb { transition: opacity .2s; transform: none; } }
+</style>
+
+<script>
+  import { animate } from 'motion';
+  const nav = document.querySelector<HTMLElement>('[data-cb]');
+  if (nav) {
+    const pill = nav.querySelector<HTMLButtonElement>('.cb-pill')!;
+    const sheet = nav.querySelector<HTMLElement>('.cb-sheet')!;
+    const list = nav.querySelector<HTMLElement>('.cb-list')!;
+    const label = nav.querySelector<HTMLElement>('.cb-label')!;
+    const count = nav.querySelector<HTMLElement>('.cb-count')!;
+    const fill = nav.querySelector<HTMLElement>('.cb-fill')!;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const secs = [...document.querySelectorAll<HTMLElement>('[data-chapter]')];
+    const outer = (s: HTMLElement) => (s.closest('.pin-spacer') as HTMLElement) || s;
+    const top = (s: HTMLElement) => outer(s).getBoundingClientRect().top + scrollY;
+
+    // chapter menu
+    secs.forEach((s, i) => {
+      const li = document.createElement('li'); const b = document.createElement('button'); b.type = 'button';
+      b.innerHTML = `${s.dataset.chapter}<span>${String(i + 1)} / ${secs.length}</span>`;
+      b.addEventListener('click', () => { go(s); toggle(false); });
+      li.append(b); list.append(li);
+    });
+    const btns = [...list.querySelectorAll('button')];
+    const go = async (s: HTMLElement) => {
+      const y = top(s) + 2;
+      const { lenis } = await import('../scripts/scroll');
+      if (lenis) lenis.scrollTo(y, { duration: 1.4 }); else scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
+    };
+    let open = false;
+    const toggle = (v = !open) => {
+      open = v; pill.setAttribute('aria-expanded', String(v));
+      if (v) {
+        sheet.hidden = false;
+        if (!reduce) animate(sheet, { opacity: [0, 1], scale: [0.94, 1], y: [10, 0], filter: ['blur(6px)', 'blur(0px)'] }, { type: 'spring', bounce: 0, duration: 0.35 });
+        btns.find((b) => b.getAttribute('aria-current') === 'true')?.focus({ preventScroll: true });
+      } else if (!sheet.hidden) {
+        if (reduce) sheet.hidden = true;
+        else animate(sheet, { opacity: 0, scale: 0.96, y: 8 }, { type: 'spring', bounce: 0, duration: 0.25 }).then(() => { if (!open) sheet.hidden = true; });
+      }
+    };
+    pill.addEventListener('click', () => toggle());
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) { toggle(false); pill.focus(); } });
+    document.addEventListener('pointerdown', (e) => { if (open && !nav.contains(e.target as Node)) toggle(false); });
+
+    // where am I
+    let cur = -1;
+    const setChapter = (i: number) => {
+      if (i === cur) return; const first = cur === -1; cur = i;
+      btns.forEach((b, j) => b.setAttribute('aria-current', String(j === i)));
+      count.textContent = `${i + 1} / ${secs.length}`;
+      if (first || reduce) { label.textContent = secs[i].dataset.chapter!; return; }
+      animate(label, { y: ['0%', '-110%'], opacity: [1, 0] }, { duration: 0.16, ease: [0.4, 0, 1, 1] }).then(() => {
+        label.textContent = secs[i].dataset.chapter!;
+        animate(label, { y: ['110%', '0%'], opacity: [0, 1] }, { type: 'spring', bounce: 0, duration: 0.32 });
+      });
+    };
+    const tick = () => {
+      const mid = scrollY + innerHeight * 0.5; let i = 0;
+      secs.forEach((s, j) => { if (top(s) <= mid) i = j; });
+      setChapter(i);
+      const max = document.documentElement.scrollHeight - innerHeight;
+      fill.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`;
+      nav.classList.toggle('on', scrollY > innerHeight * 0.6);
+    };
+    addEventListener('scroll', tick, { passive: true }); addEventListener('resize', tick); tick();
+
+    // liquid glass refraction map (Chromium only; others keep the frosted fallback)
+    const chromium = !!(window as any).chrome && CSS.supports('backdrop-filter', 'blur(1px)');
+    if (chromium && !matchMedia('(prefers-reduced-transparency: reduce)').matches) {
+      const feImg = nav.querySelector('.cb-map')!;
+      const build = () => {
+        const r = pill.getBoundingClientRect(); const w = Math.max(40, Math.round(r.width)), h = Math.max(40, Math.round(r.height));
+        const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d')!;
+        const img = g.createImageData(w, h), d = img.data, rad = h / 2, rim = Math.min(18, h * 0.42);
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+          // signed distance to the capsule edge, and the outward normal
+          const cx = Math.min(Math.max(x, rad), w - rad), dx = x - cx, dy = y - rad;
+          const len = Math.hypot(dx, dy) || 1, dist = rad - len;              // 0 at edge, rad at core line
+          const t = Math.max(0, 1 - dist / rim), k = t * t * (3 - 2 * t);     // only the rim bends light
+          const i = (y * w + x) * 4;
+          d[i] = 128 - (dx / len) * 127 * k; d[i + 1] = 128 - (dy / len) * 127 * k; d[i + 2] = 128; d[i + 3] = 255;
+        }
+        g.putImageData(img, 0, 0);
+        feImg.setAttribute('href', c.toDataURL()); feImg.setAttribute('width', String(w)); feImg.setAttribute('height', String(h));
+      };
+      build(); new ResizeObserver(build).observe(pill);
+      document.documentElement.classList.add('lg');
+    }
+  }
+</script>
