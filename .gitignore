@@ -3,3 +3,6 @@
 node_modules/
 dist/
 .DS_Store
+
+# Third-party inspiration images: reference only, never publish
+source/inspiration/
