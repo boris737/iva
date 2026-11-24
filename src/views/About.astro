@@ -1,0 +1,49 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { about, cv } from '../data/site';
+import type { Lang } from '../data/projects';
+import portrait from '../assets/portrait.png';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const a = about[lang];
+const s = (v: string | { en: string; mk: string }) => (typeof v === 'string' ? v : v[lang]);
+---
+<Base lang={lang} title={a.title} alt={lang === 'en' ? '/mk/about/' : '/about/'} current="about">
+  <section class="wrap page">
+    <div class="top">
+      <div>
+        <h1 class="display">{a.title}</h1>
+        <p class="display lead">{a.lead}</p>
+        <div class="prose">{a.bio.map((p) => <p>{p}</p>)}</div>
+        <a class="btn" href="/iva-hristova-cv.pdf" download>{a.cv}</a>
+      </div>
+      <Image src={portrait} format="webp" widths={[320, 538]} sizes="(max-width: 760px) 70vw, 30vw" alt={lang === 'en' ? 'Portrait of Iva Hristova' : 'Портрет на Ива Христова'} loading="eager" />
+    </div>
+    <div class="cols">
+      <section><h2>{a.exp}</h2>
+        <ul>{cv.experience.map((e) => <li><strong>{e.role[lang]}</strong><span class="muted">{s(e.org)}{e.when[lang] && ` · ${e.when[lang]}`}</span><span>{e.what[lang]}</span></li>)}</ul>
+      </section>
+      <section><h2>{a.edu}</h2>
+        <ul>{cv.education.map((e) => <li><strong>{e.what[lang]}</strong><span class="muted">{e.where} · {e.when}</span></li>)}</ul>
+        <h2>{a.skills}</h2><p class="small">{cv.software}</p>
+        <h2>{a.langs}</h2><p class="small">{cv.languages[lang]}</p>
+      </section>
+    </div>
+  </section>
+</Base>
+<style>
+  .page { padding-top: clamp(110px, 16vh, 180px); padding-bottom: clamp(72px, 10vw, 140px); }
+  .top { display: grid; grid-template-columns: 1.4fr 1fr; gap: 6vw; align-items: start; }
+  .top :global(img) { width: 100%; max-width: 440px; filter: sepia(.25); }
+  .lead { font-size: var(--t-h3); line-height: 1.15; margin: 28px 0; max-width: 24ch; }
+  .prose { color: #d3c9bb; }
+  .btn { margin-top: 32px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; margin-top: clamp(64px, 9vw, 120px); border-top: 1px solid var(--line); padding-top: 40px; }
+  h2 { font-family: var(--serif); font-weight: 300; font-size: var(--t-lg); margin: 28px 0 14px; }
+  h2:first-child { margin-top: 0; }
+  ul { list-style: none; padding: 0; display: grid; gap: 22px; }
+  li { display: grid; gap: 2px; font-size: var(--t-sm); }
+  li strong { font-weight: 600; font-size: var(--t-md); }
+  @media (max-width: 760px) { .top, .cols { grid-template-columns: 1fr; } .top :global(img) { width: 70%; } }
+</style>

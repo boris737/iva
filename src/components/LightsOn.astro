@@ -1,0 +1,93 @@
+---
+// Signature scroll moment. Without JS, or with reduced motion, it renders as two stills.
+import { Picture } from 'astro:assets';
+import plans from '../assets/work/aura-plans.png';
+import render from '../assets/work/aura-aerial.png';
+import { ui, href } from '../data/site';
+import type { Lang } from '../data/projects';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+---
+<section class="lo" data-lo aria-labelledby="lo-title">
+  <div class="lo-stage">
+    <div class="lo-dark" aria-hidden="true"></div>
+    <div class="lo-glow" aria-hidden="true"></div>
+    <figure class="lo-sheet">
+      <Picture fallbackFormat="webp" src={plans} formats={['avif', 'webp']} widths={[480, 770]} sizes="(max-width: 760px) 88vw, 770px" alt={lang === 'en' ? 'Aura Theatre floor plans in red line' : 'Основи на Театар Аура во црвена линија'} loading="lazy" />
+      <figcaption>{lang === 'en' ? 'Aura Theatre, floor plans' : 'Театар Аура, основи'}</figcaption>
+    </figure>
+    <div class="lo-render">
+      <Picture fallbackFormat="webp" src={render} formats={['avif', 'webp']} widths={[480, 825]} sizes="(max-width: 760px) 100vw, 825px" alt={lang === 'en' ? 'Aura Theatre at sunset with its lights on' : 'Театар Аура на зајдисонце со вклучени светла'} loading="lazy" />
+    </div>
+    <p class="lo-line lo-1" aria-hidden="true">{t.lights[0]}</p>
+    <p class="lo-line lo-2" aria-hidden="true">{t.lights[1]}</p>
+    <div class="lo-title">
+      <h2 class="display" id="lo-title">{t.lights[2]}</h2>
+      <p class="small">{t.lightsSub} · <a class="link" href={href(lang, 'work/aura-theatre/')}>{lang === 'en' ? 'See the project' : 'Види го проектот'}</a></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* static (no JS / reduced motion): sheet on travertine, then the render */
+  .lo { background: var(--trav); color: var(--ink); }
+  .lo-stage { position: relative; padding: clamp(64px, 9vw, 130px) var(--pad); display: grid; gap: clamp(40px, 6vw, 80px); justify-items: center; }
+  .lo-dark, .lo-glow { display: none; }
+  .lo-sheet { width: min(770px, 100%); background: var(--trav-hi); padding: clamp(14px, 2vw, 28px); box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 24px 60px -20px rgba(60,40,20,.35); }
+  .lo-sheet :global(img) { width: 100%; mix-blend-mode: multiply; }
+  .lo-sheet figcaption { color: var(--muted-ink); }
+  .lo-render { width: min(1000px, 100%); aspect-ratio: 825 / 596; overflow: hidden; }
+  .lo-render :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .lo-line { display: none; }
+  .lo-title { text-align: center; }
+  .lo-title .small { margin-top: 12px; color: var(--muted-ink); }
+
+  /* live: one pinned stage, scrubbed by scroll */
+  :global(.lo.is-live) .lo-stage { height: 100svh; padding: 0; display: block; overflow: hidden; }
+  :global(.lo.is-live) .lo-dark { display: block; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 45%, #3b2618 0%, #26190f 45%, var(--umber) 100%); opacity: 0; }
+  :global(.lo.is-live) .lo-glow { display: block; position: absolute; inset: 0; background: radial-gradient(40% 45% at 50% 46%, rgba(255, 168, 92, .30), transparent 70%); opacity: 0; mix-blend-mode: screen; pointer-events: none; z-index: 1; }
+  :global(.lo.is-live) .lo-sheet { position: absolute; left: 50%; top: 50%; width: min(770px, 88vw); transform: translate(-50%, -50%); will-change: transform, opacity; }
+  :global(.lo.is-live) .lo-render { position: absolute; left: 50%; top: calc(50% - 48px); width: min(1000px, 92vw, calc((100svh - 240px) * 1.384)); transform: translate(-50%, -50%);
+    clip-path: circle(0% at 42% 56%); will-change: clip-path; }
+  :global(.lo.is-live) .lo-render :global(img) { filter: brightness(var(--lit, .6)) sepia(calc(1 - var(--lit, .6))) saturate(calc(.6 + var(--lit, .6) * .4)); }
+  :global(.lo.is-live) .lo-line { display: block; position: absolute; left: var(--pad); bottom: clamp(28px, 6vh, 64px); font-family: var(--serif); font-weight: 300; font-size: var(--t-h3); line-height: 1.1; opacity: 0; }
+  :global(.lo.is-live) .lo-1 { opacity: 1; color: var(--ink); }
+  :global(.lo.is-live) .lo-2 { color: var(--trav); }
+  :global(.lo.is-live) .lo-title { position: absolute; left: 0; right: 0; bottom: clamp(20px, 5vh, 56px); color: var(--trav); opacity: 0; }
+  :global(.lo.is-live) .lo-title .small { color: var(--muted); }
+  @media (max-width: 760px) {
+    :global(.lo.is-live) .lo-sheet { top: 42%; }
+    :global(.lo.is-live) .lo-render { top: 42%; width: 100vw; aspect-ratio: 4 / 5; max-height: 66svh; }
+  }
+</style>
+
+<script>
+  import { whenIdle } from '../scripts/idle';
+  const el = document.querySelector<HTMLElement>('[data-lo]');
+  if (el && !matchMedia('(prefers-reduced-motion: reduce)').matches) whenIdle(async () => {
+    const { gsap, ScrollTrigger } = await import('../scripts/scroll');
+    el.classList.add('is-live');
+    const q = gsap.utils.selector(el);
+    const render = q('.lo-render')[0] as HTMLElement;
+    const tl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: { trigger: el, start: 'top top', end: () => '+=' + Math.round(innerHeight * (innerWidth < 760 ? 1.8 : 2.4)), pin: q('.lo-stage')[0], scrub: 0.6, invalidateOnRefresh: true },
+    });
+    tl.to(q('.lo-sheet'), { scale: 1.03, duration: 0.2 })
+      .to(q('.lo-1'), { opacity: 0, duration: 0.06 }, 0.18)
+      // dusk: warm dark rises, the drawing recedes like paper on a desk at night
+      .to(q('.lo-dark'), { opacity: 1, duration: 0.22 }, 0.18)
+      .to(q('.lo-sheet'), { scale: 0.9, opacity: 0, duration: 0.2 }, 0.22)
+      .to(q('.lo-2'), { opacity: 1, duration: 0.06 }, 0.3)
+      // lights on: the building opens out from the auditorium ring, glowing, then settles
+      .fromTo(render, { clipPath: 'circle(0% at 42% 56%)' }, { clipPath: 'circle(110% at 42% 56%)', duration: 0.4, ease: 'power2.inOut' }, 0.28)
+      .to(q('.lo-glow'), { opacity: 1, duration: 0.15 }, 0.3)
+      .fromTo(render, { '--lit': 0.6 }, { '--lit': 1, duration: 0.3 }, 0.42)
+      .to(q('.lo-glow'), { opacity: 0, duration: 0.2 }, 0.62)
+      .to(q('.lo-2'), { opacity: 0, duration: 0.05 }, 0.72)
+      .to(q('.lo-title'), { opacity: 1, duration: 0.1 }, 0.78)
+      .to({}, { duration: 0.08 });
+    ScrollTrigger.refresh();
+  });
+</script>

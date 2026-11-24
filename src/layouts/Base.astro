@@ -1,0 +1,90 @@
+---
+import '../styles/global.css';
+import { ui, href, contact } from '../data/site';
+import type { Lang } from '../data/projects';
+
+interface Props { lang: Lang; title?: string; description?: string; alt: string; current?: 'work' | 'studio' | 'about' | 'contact'; preload?: string; }
+const { lang, title, description, alt, current, preload } = Astro.props;
+const t = ui[lang];
+const pageTitle = title ? `${title} · ${t.title}` : t.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const altUrl = new URL(alt, Astro.site);
+---
+<!doctype html>
+<html lang={lang}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={description ?? t.desc} />
+  <meta name="theme-color" content="#1c140e" />
+  <link rel="canonical" href={canonical} />
+  <link rel="alternate" hreflang={lang === 'en' ? 'mk' : 'en'} href={altUrl} />
+  <link rel="alternate" hreflang={lang} href={canonical} />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={description ?? t.desc} />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+  <a class="skip" href="#main">{t.skip}</a>
+  <header class="site-head" data-head>
+    <a class="wordmark" href={href(lang)}>Iva Hristova</a>
+    <button class="menu-btn" aria-expanded="false" aria-controls="site-nav" data-menu>{lang === 'en' ? 'Menu' : 'Мени'}</button>
+    <nav class="site-nav" id="site-nav" aria-label={lang === 'en' ? 'Main' : 'Главна'}>
+      <ul>
+        <li><a href={href(lang, 'work/')} aria-current={current === 'work' ? 'page' : undefined}>{t.nav.work}</a></li>
+        <li><a href={href(lang, '#studio')}>{t.nav.studio}</a></li>
+        <li><a href={href(lang, 'about/')} aria-current={current === 'about' ? 'page' : undefined}>{t.nav.about}</a></li>
+        <li><a href={href(lang, 'contact/')} aria-current={current === 'contact' ? 'page' : undefined}>{t.nav.contact}</a></li>
+        <li><a class="lang-switch" href={alt} hreflang={lang === 'en' ? 'mk' : 'en'} lang={lang === 'en' ? 'mk' : 'en'}><span aria-hidden="true">{t.other}</span><span class="sr">{t.otherLabel}</span></a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main"><slot /></main>
+
+  <footer class="site-foot wrap">
+    <div class="foot-grid">
+      <p class="foot-big">{t.talk}</p>
+      <ul class="foot-list">
+        <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>
+        <li><a href={`tel:${contact.phoneHref}`}>{contact.phone}</a></li>
+        <li><a href={`https://instagram.com/${contact.instagram}`} rel="noopener">Instagram @{contact.instagram}</a></li>
+      </ul>
+      <ul class="foot-list">
+        <li><a href={href(lang, 'work/')}>{t.nav.work}</a></li>
+        <li><a href={href(lang, 'about/')}>{t.nav.about}</a></li>
+        <li><a href={href(lang, 'contact/')}>{t.nav.contact}</a></li>
+      </ul>
+    </div>
+    <div class="foot-legal"><span>© {new Date().getFullYear()} Iva Hristova · Hristdesign</span><span>{lang === 'en' ? 'Skopje, North Macedonia' : 'Скопје, Северна Македонија'}</span></div>
+  </footer>
+
+  <script>
+    import { whenIdle } from '../scripts/idle';
+    whenIdle(() => import('../scripts/scroll').then((m) => m.initScroll()));
+
+    const head = document.querySelector<HTMLElement>('[data-head]')!;
+    const btn = document.querySelector<HTMLButtonElement>('[data-menu]')!;
+    const nav = document.getElementById('site-nav')!;
+    btn.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+    });
+    nav.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) { nav.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); document.documentElement.style.overflow = ''; } });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nav.classList.contains('open')) btn.click(); });
+
+    let last = 0;
+    const onScroll = () => {
+      const y = window.scrollY;
+      head.classList.toggle('solid', y > 40);
+      head.classList.toggle('hide', y > last && y > 400 && !nav.classList.contains('open'));
+      last = y;
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  </script>
+</body>
+</html>

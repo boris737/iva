@@ -1,0 +1,61 @@
+---
+import { Image } from 'astro:assets';
+import { projects, type Lang } from '../data/projects';
+import { href } from '../data/site';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+---
+<ol class="wl" data-wl>
+  {projects.map((p) => (
+    <li>
+      <a href={href(lang, `work/${p.slug}/`)}>
+        <span class="n display">{p.name}</span>
+        <span class="m">{p.type[lang]}, {p.location[lang]}</span>
+        <span class="y">{p.year ?? (lang === 'en' ? 'Concept' : 'Идејно')}</span>
+        <Image class="th" src={p.thumb} format="webp" widths={[360, 560]} sizes="(max-width: 760px) 92vw, 360px" alt="" loading="lazy" />
+      </a>
+    </li>
+  ))}
+</ol>
+<div class="peek" aria-hidden="true" data-peek></div>
+
+<style>
+  .wl { list-style: none; padding: 0; border-top: 1px solid var(--line); }
+  .wl li { border-bottom: 1px solid var(--line); }
+  .wl a { display: grid; grid-template-columns: 1fr minmax(200px, 320px) 110px; align-items: baseline; gap: 20px; padding-block: clamp(16px, 2vw, 26px); }
+  .n { font-size: var(--t-h2); line-height: 1; transition: color .3s, font-style .3s; }
+  .m { font-size: var(--t-sm); color: var(--muted); }
+  .y { font-size: var(--t-sm); color: var(--concrete); text-align: right; }
+  .wl :global(.th) { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .wl:hover a .n { color: #8f8273; }
+    .wl a:hover .n, .wl a:focus-visible .n { color: #fff; font-style: italic; }
+  }
+  .peek { position: fixed; left: 0; top: 0; width: 360px; aspect-ratio: 3 / 2; pointer-events: none; z-index: 40; opacity: 0; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,.5); }
+  .peek :global(img) { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .peek :global(img.on) { display: block; }
+  @media (max-width: 760px) {
+    .wl a { grid-template-columns: 1fr auto; gap: 8px 12px; }
+    .n { grid-column: 1 / -1; font-size: 2.4rem; }
+    .wl :global(.th) { display: block; grid-column: 1 / -1; order: -1; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; margin-bottom: 8px; }
+    .peek { display: none; }
+  }
+</style>
+
+<script>
+  import { whenIdle } from '../scripts/idle';
+  const list = document.querySelector<HTMLElement>('[data-wl]');
+  const peek = document.querySelector<HTMLElement>('[data-peek]');
+  if (list && peek && matchMedia('(hover: hover) and (pointer: fine)').matches && innerWidth > 760) whenIdle(async () => {
+    const { gsap, reduced } = await import('../scripts/scroll');
+    const imgs = [...list.querySelectorAll<HTMLImageElement>('.th')].map((i) => { const c = i.cloneNode() as HTMLImageElement; c.loading = 'eager'; peek.appendChild(c); return c; });
+    const rm = reduced();
+    const x = gsap.quickTo(peek, 'x', { duration: rm ? 0 : 0.45, ease: 'power3' });
+    const y = gsap.quickTo(peek, 'y', { duration: rm ? 0 : 0.45, ease: 'power3' });
+    list.addEventListener('pointermove', (e) => { x(e.clientX + 24); y(e.clientY - 120); });
+    list.querySelectorAll('li').forEach((li, i) => {
+      li.addEventListener('pointerenter', () => { imgs.forEach((im, k) => im.classList.toggle('on', k === i)); gsap.to(peek, { opacity: 1, scale: 1, duration: rm ? 0 : 0.25 }); });
+    });
+    list.addEventListener('pointerleave', () => gsap.to(peek, { opacity: 0, scale: 0.96, duration: rm ? 0 : 0.2 }));
+  });
+</script>

@@ -1,0 +1,149 @@
+---
+import { Picture, Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import LightsOn from '../components/LightsOn.astro';
+import WorkList from '../components/WorkList.astro';
+import { ui, href } from '../data/site';
+import type { Lang } from '../data/projects';
+import hero from '../assets/work/aura-aerial.png';
+import detail from '../assets/work/aura-detail.png';
+import section from '../assets/work/public-section.png';
+import sketch from '../assets/work/sail-sketch-museum.png';
+import arch from '../assets/work/sail-gallery.png';
+import mark from '../assets/hrist-mark-charcoal.png';
+import walnut from '../assets/tex/walnut.png';
+import travertine from '../assets/tex/travertine.png';
+import concrete from '../assets/tex/concrete.png';
+import plaster from '../assets/tex/olive-plaster.png';
+import portrait from '../assets/portrait.png';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+const heroSet = await getImage({ src: hero, format: 'webp', width: 825 });
+const wood = await getImage({ src: walnut, format: 'webp', width: 1200 });
+const swatches = [walnut, travertine, concrete, plaster];
+const drawings = [
+  { src: section, cap: lang === 'en' ? 'Public Building, long section' : 'Јавна зграда, подолжен пресек', w: 'wide' },
+  { src: detail, cap: lang === 'en' ? 'Aura Theatre, roof and parapet detail' : 'Театар Аура, детал на покрив и атика', w: '' },
+  { src: sketch, cap: lang === 'en' ? 'Quiet Sailing, hand sketch of the museum hall' : 'Quiet Sailing, скица на музејската сала', w: '' },
+];
+---
+<Base lang={lang} alt={lang === 'en' ? '/mk/' : '/'} preload={heroSet.src}>
+  <section class="hero" aria-label={t.title}>
+    <div class="hero-img">
+      <Picture fallbackFormat="webp" src={hero} formats={['webp']} widths={[480, 825]} sizes="(max-width: 760px) 100vw, 62vw" alt={lang === 'en' ? 'Aura Theatre at sunset, Skopje: a round auditorium and a long glass wing in a park' : 'Театар Аура на зајдисонце, Скопје: кружна сала и долго стаклено крило во парк'} loading="eager" fetchpriority="high" />
+      <p class="cap">{t.heroCap}</p>
+    </div>
+    <div class="hero-copy">
+      <h1 class="display">{lang === 'en' ? <>Iva<br />Hristova</> : <>Ива<br />Христова</>}</h1>
+      <p class="lede">{t.heroLine}</p>
+    </div>
+  </section>
+
+  <LightsOn lang={lang} />
+
+  <section class="section wrap" aria-labelledby="sel">
+    <div class="head-row">
+      <h2 class="display" id="sel">{t.selected}</h2>
+      <a class="link small" href={href(lang, 'work/')}>{t.allWork}</a>
+    </div>
+    <WorkList lang={lang} />
+  </section>
+
+  <section class="section wrap on-light drawn" aria-labelledby="drawn">
+    <div class="drawn-head">
+      <h2 class="display" id="drawn">{t.drawnTitle}</h2>
+      <p class="lede">{t.drawnText}</p>
+    </div>
+    <div class="drawn-grid">
+      {drawings.map((d) => (
+        <figure class={d.w}>
+          <Image src={d.src} format="webp" widths={[400, d.src.width]} sizes="(max-width: 760px) 92vw, 50vw" alt={d.cap} loading="lazy" style={`max-width:${Math.round(d.src.width * 1.6)}px`} />
+          <figcaption>{d.cap}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </section>
+
+  <section class="studio" id="studio" aria-labelledby="studio-t">
+    <div class="wood" style={`background-image:url(${wood.src})`}>
+      <div class="archwin">
+        <Image src={arch} format="webp" widths={[400, 818]} sizes="(max-width: 760px) 70vw, 30vw" alt={lang === 'en' ? 'Timber gallery along Lake Ohrid, from Quiet Sailing' : 'Дрвена галерија покрај Охридското Езеро, од Quiet Sailing'} loading="lazy" />
+      </div>
+    </div>
+    <div class="studio-txt on-light">
+      <div>
+        <Image class="mark" src={mark} width={180} alt="Hristdesign" loading="lazy" />
+        <h2 class="display" id="studio-t">Hristdesign</h2>
+        <p class="lede">{t.studioText}</p>
+        <a class="btn" href={href(lang, 'contact/')}>{t.studioCta}</a>
+      </div>
+      <div>
+        <p class="small muted">{t.materials}</p>
+        <ul class="swatches">
+          {swatches.map((s, i) => (
+            <li><Image src={s} format="webp" width={240} height={240} alt="" loading="lazy" style={i === 3 ? 'filter:saturate(.45) brightness(.85)' : undefined} /><span>{t.mat[i]}</span></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap about-teaser" aria-label={lang === 'en' ? 'About' : 'За мене'}>
+    <Image src={portrait} format="webp" width={360} alt={lang === 'en' ? 'Portrait of Iva Hristova' : 'Портрет на Ива Христова'} loading="lazy" />
+    <div>
+      <p class="display about-big">{t.aboutTeaser}</p>
+      <a class="link small" href={href(lang, 'about/')}>{t.aboutMore}</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { position: relative; min-height: max(640px, 100svh); display: grid; grid-template-columns: 1fr; align-items: end; padding: 96px var(--pad) clamp(40px, 7vh, 80px); overflow: hidden; }
+  .hero-img { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 62vw; max-width: 1100px; }
+  .hero-img :global(img) { width: 100%; aspect-ratio: 825 / 596; object-fit: cover;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 26%); mask-image: linear-gradient(90deg, transparent 0, #000 26%); }
+  .hero-img .cap { position: absolute; right: var(--pad); bottom: -28px; }
+  .hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 140px; background: linear-gradient(180deg, rgba(28,20,14,.75), transparent); z-index: 1; pointer-events: none; }
+  .hero-copy { position: relative; z-index: 2; max-width: 720px; }
+  .hero-copy h1 { text-shadow: 0 2px 40px rgba(28,20,14,.6); }
+  .hero-copy .lede { margin-top: 28px; color: #d3c9bb; }
+  @media (max-width: 760px) {
+    .hero { padding-top: 0; align-items: end; min-height: 100svh; }
+    .hero-img { position: absolute; top: 0; left: 0; transform: none; width: 100%; }
+    .hero-img :global(img) { aspect-ratio: 4 / 5; -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 40%); mask-image: linear-gradient(0deg, transparent 0, #000 40%); }
+    .hero-img .cap { display: none; }
+    .hero-copy .lede { margin-top: 18px; font-size: 1.0625rem; }
+  }
+
+  .head-row { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; margin-bottom: clamp(28px, 4vw, 48px); }
+
+  .drawn-head { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap) 6vw; align-items: end; margin-bottom: clamp(36px, 5vw, 64px); }
+  .drawn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 4vw, 56px) var(--gap); align-items: end; }
+  .drawn-grid .wide { grid-column: 1 / -1; }
+  .drawn-grid :global(img) { width: 100%; mix-blend-mode: multiply; margin-inline: auto; }
+  @media (max-width: 760px) { .drawn-head, .drawn-grid { grid-template-columns: 1fr; } }
+
+  .studio { display: grid; grid-template-columns: 1fr 1fr; min-height: min(900px, 100svh); }
+  .wood { background-size: cover; background-position: center; display: grid; place-items: end center; padding-top: clamp(64px, 9vw, 120px); }
+  .archwin { width: min(62%, 420px); aspect-ratio: 3 / 4.2; border-radius: 999px 999px 0 0; overflow: hidden; box-shadow: 0 -12px 60px rgba(0,0,0,.35); }
+  .archwin :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .studio-txt { padding: clamp(56px, 8vw, 110px) var(--pad); display: flex; flex-direction: column; justify-content: space-between; gap: 48px; }
+  .studio-txt :global(.mark) { width: 120px; margin-bottom: 36px; }
+  .studio-txt .lede { margin-top: 18px; color: var(--muted-ink); }
+  .studio-txt .btn { margin-top: 28px; }
+  .swatches { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+  .swatches :global(img) { width: 100%; aspect-ratio: 1; object-fit: cover; }
+  .swatches span { display: block; font-size: var(--t-xs); color: var(--muted-ink); margin-top: 6px; line-height: 1.3; }
+  @media (max-width: 760px) {
+    .studio { grid-template-columns: 1fr; }
+    .wood { min-height: 440px; }
+    .swatches { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .about-teaser { display: grid; grid-template-columns: minmax(160px, 300px) 1fr; gap: clamp(24px, 5vw, 80px); align-items: end; }
+  .about-teaser :global(img) { width: 100%; filter: sepia(.25) contrast(1.02); }
+  .about-big { font-size: var(--t-h3); line-height: 1.15; max-width: 26ch; margin-bottom: 24px; }
+  @media (max-width: 760px) { .about-teaser { grid-template-columns: 1fr; } .about-teaser :global(img) { width: 60%; } }
+</style>

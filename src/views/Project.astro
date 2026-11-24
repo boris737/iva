@@ -1,0 +1,85 @@
+---
+import { Picture, Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { projects, type Lang, type Project } from '../data/projects';
+import { ui, href } from '../data/site';
+interface Props { lang: Lang; p: Project }
+const { lang, p } = Astro.props;
+const t = ui[lang];
+const i = projects.indexOf(p);
+const next = projects[(i + 1) % projects.length];
+const lcp = await getImage({ src: p.hero.src, format: 'webp', width: p.hero.src.width });
+const kind = (k: string) => (k === 'render' ? t.render : k === 'sketch' ? t.sketch : t.drawing);
+---
+<Base lang={lang} title={p.name} description={p.summary[lang]} alt={lang === 'en' ? `/mk/work/${p.slug}/` : `/work/${p.slug}/`} current="work" preload={lcp.src}>
+  <article>
+    <header class="p-head wrap">
+      <a class="small muted back" href={href(lang, 'work/')}>{t.back}</a>
+      <h1 class="display">{p.name}</h1>
+      <p class="lede">{p.summary[lang]}</p>
+    </header>
+
+    <figure class="p-hero">
+      <Picture fallbackFormat="webp" src={p.hero.src} style={`max-width:${Math.round(p.hero.src.width * 1.5)}px`} formats={['avif', 'webp']} widths={[480, p.hero.src.width]} sizes="(max-width: 760px) 100vw, 1000px" alt={p.hero.alt[lang]} loading="eager" fetchpriority="high" />
+    </figure>
+
+    <div class="p-body wrap">
+      <dl class="facts">
+        <div><dt>{t.facts.type}</dt><dd>{p.type[lang]}</dd></div>
+        <div><dt>{t.facts.location}</dt><dd>{p.location[lang]}</dd></div>
+        {p.year && <div><dt>{t.facts.year}</dt><dd>{p.year}</dd></div>}
+        <div><dt>{t.facts.status}</dt><dd>{p.status[lang]}</dd></div>
+        {p.facts.map((f) => <div><dt>{f.label[lang]}</dt><dd>{f.value}</dd></div>)}
+      </dl>
+      <div class="prose">{p.body[lang].map((para) => <p>{para}</p>)}</div>
+    </div>
+
+    <div class="gallery wrap">
+      {p.gallery.map((s) => (
+        <figure class:list={[s.size ?? 'half', s.kind !== 'render' && 'paper']}>
+          <Image src={s.src} format="webp" widths={[480, s.src.width]} sizes={s.size === 'wide' ? '(max-width: 760px) 92vw, 1100px' : '(max-width: 760px) 92vw, 50vw'} alt={s.alt[lang]} loading="lazy" style={`max-width:${Math.round(s.src.width * 1.6)}px`} />
+          <figcaption><span>{kind(s.kind)}</span> {s.alt[lang]}</figcaption>
+        </figure>
+      ))}
+    </div>
+
+    <nav class="next wrap" aria-label={t.next}>
+      <a href={href(lang, `work/${next.slug}/`)}>
+        <span class="small muted">{t.next}</span>
+        <span class="display">{next.name}</span>
+      </a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .p-head { padding-top: clamp(110px, 16vh, 180px); padding-bottom: clamp(32px, 5vw, 64px); max-width: 1200px; }
+  .back { display: inline-block; padding-block: 10px; margin-bottom: 18px; }
+  .back:hover { color: var(--trav); }
+  .p-head .lede { margin-top: 24px; max-width: 46ch; color: #d3c9bb; }
+  .p-hero { padding-inline: var(--pad); }
+  .p-hero :global(img) { width: min(100%, 1100px); }
+  .p-body { display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: 32px 6vw; padding-block: clamp(48px, 7vw, 100px); }
+  .facts { display: grid; gap: 14px; align-content: start; font-size: var(--t-sm); }
+  .facts div { border-top: 1px solid var(--line); padding-top: 10px; }
+  .facts dt { color: var(--muted); font-size: var(--t-xs); }
+  .prose { font-size: var(--t-lg); line-height: 1.55; font-family: var(--serif); font-variation-settings: 'opsz' 14; }
+  .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 4vw, 56px) var(--gap); align-items: start; padding-bottom: clamp(64px, 9vw, 130px); }
+  .gallery .wide { grid-column: 1 / -1; }
+  .gallery figure :global(img) { width: 100%; margin-inline: auto; }
+  .gallery figure { align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
+  .gallery figcaption { margin-top: auto; padding-top: 10px; }
+  .gallery .paper { background: var(--trav); padding: clamp(12px, 2vw, 28px); }
+  .gallery .paper :global(img) { mix-blend-mode: multiply; }
+  .gallery .paper figcaption { color: var(--muted-ink); }
+  figcaption span { color: var(--trav); margin-right: 6px; }
+  .paper figcaption span { color: var(--ink); }
+  .next { border-top: 1px solid var(--line); }
+  .next a { display: grid; gap: 6px; padding-block: clamp(48px, 7vw, 96px); }
+  .next .display { font-size: var(--t-h1); line-height: .95; transition: font-style .2s; }
+  .next a:hover .display { font-style: italic; }
+  @media (max-width: 760px) {
+    .p-body, .gallery { grid-template-columns: 1fr; }
+    .p-hero { padding-inline: 0; }
+  }
+</style>

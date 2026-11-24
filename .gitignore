@@ -6,3 +6,5 @@ dist/
 
 # Third-party inspiration images: reference only, never publish
 source/inspiration/
+dist/
+.astro/

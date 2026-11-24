@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import { contact } from '../data/site';
+import type { Lang } from '../data/projects';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const en = lang === 'en';
+---
+<Base lang={lang} title={en ? 'Contact' : 'Контакт'} alt={en ? '/mk/contact/' : '/contact/'} current="contact">
+  <section class="wrap page">
+    <h1 class="display">{en ? 'Contact' : 'Контакт'}</h1>
+    <p class="lede">{en ? 'For a role in your studio, a building, or a room you want to change. I reply within a few days.' : 'За работно место во вашето студио, зграда или простор што сакате да го смените. Одговарам за неколку дена.'}</p>
+    <ul class="ways">
+      <li><span class="small muted">Email</span><a class="display" href={`mailto:${contact.email}`}>{contact.email}</a></li>
+      <li><span class="small muted">{en ? 'Phone' : 'Телефон'}</span><a class="display" href={`tel:${contact.phoneHref}`}>{contact.phone}</a></li>
+      <li><span class="small muted">Instagram</span><a class="display" href={`https://instagram.com/${contact.instagram}`} rel="noopener">@{contact.instagram}</a></li>
+    </ul>
+    <p class="small muted">{en ? 'Based in Skopje, North Macedonia. Open to work in Macedonia and abroad.' : 'Со седиште во Скопје, Северна Македонија. Отворена за работа во Македонија и во странство.'}</p>
+  </section>
+</Base>
+<style>
+  .page { padding-top: clamp(110px, 16vh, 180px); padding-bottom: clamp(72px, 10vw, 140px); min-height: 80svh; }
+  .lede { margin: 24px 0 clamp(40px, 6vw, 80px); color: #d3c9bb; }
+  .ways { list-style: none; padding: 0; display: grid; gap: 28px; margin-bottom: 48px; }
+  .ways li { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .ways a { font-size: var(--t-h3); line-height: 1.1; overflow-wrap: anywhere; padding-block: 4px; }
+  .ways a:hover { font-style: italic; }
+</style>
