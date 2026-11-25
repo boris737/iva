@@ -87,7 +87,7 @@ h3.display { font-size: var(--t-h3); line-height: 1.05; }
   padding: calc(18px + env(safe-area-inset-top, 0px)) var(--pad) 18px;
   transition: background-color .4s, transform .5s var(--ease-out);
 }
-.site-head.solid { background: rgba(28, 20, 14, 0.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.site-head.solid { background: rgba(14, 17, 26, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .site-head.hide { transform: translateY(-100%); }
 .wordmark { font-family: var(--display); font-weight: 700; font-size: 1rem; letter-spacing: -0.01em; padding-block: 10px; }
 .site-nav ul { display: flex; gap: clamp(18px, 2.4vw, 36px); list-style: none; padding: 0; align-items: center; }
