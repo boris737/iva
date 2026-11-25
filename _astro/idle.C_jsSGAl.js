@@ -1,0 +1,1 @@
+function o(e){const t=()=>"requestIdleCallback"in window?requestIdleCallback(()=>e(),{timeout:1500}):setTimeout(e,200);document.readyState==="complete"?t():addEventListener("load",t,{once:!0})}export{o as w};
