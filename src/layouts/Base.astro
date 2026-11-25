@@ -1,7 +1,8 @@
 ---
 import '../styles/global.css';
 import { ui, href, contact } from '../data/site';
-import type { Lang } from '../data/projects';
+import { projects, type Lang } from '../data/projects';
+import { getImage } from 'astro:assets';
 
 interface Props { lang: Lang; title?: string; description?: string; alt: string; current?: 'work' | 'studio' | 'about' | 'contact'; preload?: string; }
 const { lang, title, description, alt, current, preload } = Astro.props;
@@ -9,6 +10,11 @@ const t = ui[lang];
 const pageTitle = title ? `${title} · ${t.title}` : t.title;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const altUrl = new URL(alt, Astro.site);
+const en = lang === 'en';
+const menu = await Promise.all(projects.map(async (p, i) => ({
+  n: String(i + 1).padStart(2, '0'), name: p.name, meta: `${p.type[lang]}, ${p.location[lang]}`, href: href(lang, `#${p.slug}`),
+  img: (await getImage({ src: p.hero.src, width: 1200, format: 'webp' })).src, thumb: (await getImage({ src: p.hero.src, width: 160, format: 'webp' })).src,
+})));
 ---
 <!doctype html>
 <html lang={lang}>
@@ -17,7 +23,7 @@ const altUrl = new URL(alt, Astro.site);
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>{pageTitle}</title>
   <meta name="description" content={description ?? t.desc} />
-  <meta name="theme-color" content="#1c140e" />
+  <meta name="theme-color" content="#0b0d13" />
   <link rel="canonical" href={canonical} />
   <link rel="alternate" hreflang={lang === 'en' ? 'mk' : 'en'} href={altUrl} />
   <link rel="alternate" hreflang={lang} href={canonical} />
@@ -30,17 +36,33 @@ const altUrl = new URL(alt, Astro.site);
   <a class="skip" href="#main">{t.skip}</a>
   <header class="site-head" data-head>
     <a class="wordmark" href={href(lang)}>Iva Hristova</a>
-    <button class="menu-btn" aria-expanded="false" aria-controls="site-nav" data-menu>{lang === 'en' ? 'Menu' : 'Мени'}</button>
-    <nav class="site-nav" id="site-nav" aria-label={lang === 'en' ? 'Main' : 'Главна'}>
-      <ul>
-        <li><a href={href(lang, 'work/')} aria-current={current === 'work' ? 'page' : undefined}>{t.nav.work}</a></li>
-        <li><a href={href(lang, '#studio')}>{t.nav.studio}</a></li>
-        <li><a href={href(lang, 'about/')} aria-current={current === 'about' ? 'page' : undefined}>{t.nav.about}</a></li>
-        <li><a href={href(lang, 'contact/')} aria-current={current === 'contact' ? 'page' : undefined}>{t.nav.contact}</a></li>
-        <li><a class="lang-switch" href={alt} hreflang={lang === 'en' ? 'mk' : 'en'} lang={lang === 'en' ? 'mk' : 'en'}><span aria-hidden="true">{t.other}</span><span class="sr">{t.otherLabel}</span></a></li>
-      </ul>
-    </nav>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" data-menu><span class="mb-open">{en ? 'Menu' : 'Мени'}</span><span class="mb-close">{en ? 'Close' : 'Затвори'}</span></button>
   </header>
+  <nav class="fm" id="site-nav" aria-label={en ? 'Main' : 'Главна'} data-fm>
+    <div class="fm-view" aria-hidden="true">
+      {menu.map((m, i) => <img src={m.img} alt="" loading="lazy" decoding="async" class={i === 0 ? 'on' : undefined} />)}
+      <p class="mono fm-tag">{en ? 'Her render' : 'Нејзин рендер'}</p>
+    </div>
+    <div class="fm-col">
+      <p class="mono fm-k">{en ? 'Projects' : 'Проекти'}</p>
+      <ol class="fm-list">
+        {menu.map((m, i) => (
+          <li style={`--i:${i}`}><a href={m.href} data-i={i}>
+            <img class="fm-thumb" src={m.thumb} alt="" loading="lazy" />
+            <span class="mono fm-n">{m.n}</span><span class="fm-name">{m.name}</span><span class="fm-meta">{m.meta}</span>
+          </a></li>
+        ))}
+      </ol>
+      <ul class="fm-sub" style={`--i:${menu.length}`}>
+        <li><a href={href(lang, '#iva')}>{en ? 'About Iva' : 'За Ива'}</a></li>
+        <li><a href={href(lang, '#studio')}>Hristdesign</a></li>
+        <li><a href={href(lang, 'work/')} aria-current={current === 'work' ? 'page' : undefined}>{t.nav.work}</a></li>
+        <li><a href={href(lang, 'contact/')} aria-current={current === 'contact' ? 'page' : undefined}>{t.nav.contact}</a></li>
+        <li><a class="lang-switch" href={alt} hreflang={en ? 'mk' : 'en'} lang={en ? 'mk' : 'en'}><span aria-hidden="true">{t.other}</span><span class="sr">{t.otherLabel}</span></a></li>
+      </ul>
+      <p class="mono fm-mail" style={`--i:${menu.length + 1}`}><a href={`mailto:${contact.email}`}>{contact.email}</a></p>
+    </div>
+  </nav>
 
   <main id="main"><slot /></main>
 
@@ -58,6 +80,7 @@ const altUrl = new URL(alt, Astro.site);
         <li><a href={href(lang, 'contact/')}>{t.nav.contact}</a></li>
       </ul>
     </div>
+    <p class="foot-ghost" aria-hidden="true">Iva Hristova</p>
     <div class="foot-legal"><span>© {new Date().getFullYear()} Iva Hristova · Hristdesign</span><span>{lang === 'en' ? 'Skopje, North Macedonia' : 'Скопје, Северна Македонија'}</span></div>
   </footer>
 
@@ -67,20 +90,24 @@ const altUrl = new URL(alt, Astro.site);
 
     const head = document.querySelector<HTMLElement>('[data-head]')!;
     const btn = document.querySelector<HTMLButtonElement>('[data-menu]')!;
-    const nav = document.getElementById('site-nav')!;
-    btn.addEventListener('click', () => {
-      const open = nav.classList.toggle('open');
+    const nav = document.querySelector<HTMLElement>('[data-fm]')!;
+    const imgs = [...nav.querySelectorAll<HTMLImageElement>('.fm-view img')];
+    const setMenu = (open: boolean) => {
+      nav.classList.toggle('open', open); head.classList.toggle('menu-open', open); document.documentElement.classList.toggle('menu-on', open);
       btn.setAttribute('aria-expanded', String(open));
       document.documentElement.style.overflow = open ? 'hidden' : '';
-    });
-    nav.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) { nav.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); document.documentElement.style.overflow = ''; } });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nav.classList.contains('open')) btn.click(); });
+      if (open) nav.querySelector<HTMLElement>('.fm-list a')?.focus({ preventScroll: true });
+    };
+    btn.addEventListener('click', () => setMenu(!nav.classList.contains('open')));
+    nav.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); });
+    const show = (e: Event) => { const i = (e.target as HTMLElement).closest<HTMLElement>('[data-i]')?.dataset.i; if (i != null) imgs.forEach((im, k) => im.classList.toggle('on', k === +i)); };
+    nav.addEventListener('pointerover', show); nav.addEventListener('focusin', show);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nav.classList.contains('open')) { setMenu(false); btn.focus(); } });
 
     let last = 0;
     const onScroll = () => {
       const y = window.scrollY;
       head.classList.toggle('solid', y > 40);
-      head.classList.toggle('hide', y > last && y > 400 && !nav.classList.contains('open'));
       last = y;
     };
     addEventListener('scroll', onScroll, { passive: true });

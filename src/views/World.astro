@@ -67,7 +67,7 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
 
     <section class="st st-arrival" data-chapter={en ? 'Iva Hristova' : 'Ива Христова'} aria-labelledby="w-h">
       <div class="st-copy">
-        <h1 class="display w-name" id="w-h">{en ? <>Iva<br />Hristova</> : <>Ива<br />Христова</>}</h1>
+        <h1 class="display w-name" id="w-h">{en ? <>Iva<br /><span class="glow">Hristova</span></> : <>Ива<br /><span class="glow">Христова</span></>}</h1>
         <p class="w-lede">{en ? 'Architect and interior designer in Skopje. Five buildings and a studio, laid out on the water.' : 'Архитект и дизајнер на ентериер од Скопје. Пет згради и едно студио, поставени на водата.'}</p>
       </div>
     </section>
@@ -75,9 +75,9 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
     {[aura, sail, xm, hc, pb].map((p, k) => {
       const d = proj(p);
       const st = (
-        <section class="st st-proj" data-chapter={d.name} data-more={p.slug !== 'public-building' ? (en ? `More from ${d.name}` : `Уште од ${d.name}`) : undefined} aria-labelledby={`w-${p.slug}`}>
+        <section class="st st-proj" id={p.slug} data-chapter={d.name} data-more={p.slug !== 'public-building' ? (en ? `More from ${d.name}` : `Уште од ${d.name}`) : undefined} aria-labelledby={`w-${p.slug}`}>
           <div class="st-copy">
-            <p class="small w-meta">{d.meta}</p>
+            <p class="mono w-meta"><span class="w-num">{String(k + 1).padStart(2, '0')}</span>{d.meta}</p>
             <h2 class="display" id={`w-${p.slug}`}>{d.name}</h2>
             <p class="w-sum">{d.sum}</p>
             <a class="link w-link" href={d.href}>{open}</a>
@@ -88,9 +88,9 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
         </section>
       );
       return k === 1 ? [
-        <section class="st st-iva" data-chapter="Iva" aria-labelledby="w-iva">
+        <section class="st st-iva" id="iva" data-chapter="Iva" aria-labelledby="w-iva">
           <div class="st-copy">
-            <p class="small w-meta">{en ? 'Who drew all this' : 'Кој го нацрта сето ова'}</p>
+            <p class="mono w-meta">{en ? 'Who drew all this' : 'Кој го нацрта сето ова'}</p>
             <h2 class="display" id="w-iva">{en ? 'Iva Hristova' : 'Ива Христова'}</h2>
             <p class="w-sum">{about[lang].bio[0]}</p>
             <p class="w-sub">{en ? 'Interior designer at Parallel Group, Skopje. Founder of Hristdesign.' : 'Дизајнер на ентериер во Parallel Group, Скопје. Основач на Hristdesign.'}</p>
@@ -119,7 +119,7 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
           <li><a href={`tel:${contact.phoneHref}`}>{contact.phone}</a></li>
           <li><a href={`https://instagram.com/${contact.instagram}`} rel="noopener">@{contact.instagram}</a></li>
         </ul>
-        <p class="w-note">{en ? 'Sky, water and hills are drawn in 3D. Moving images and the night versions are made from her renders with Higgsfield; the buildings are hers.' : 'Небото, водата и ридовите се цртани во 3Д. Подвижните слики и ноќните верзии се направени од нејзините рендери со Higgsfield; зградите се нејзини.'}</p>
+        <p class="w-note">{en ? 'Sky and water are drawn in 3D. Moving images and the night versions are made from her renders with Higgsfield; the buildings are hers.' : 'Небото и водата се цртани во 3Д. Подвижните слики и ноќните верзии се направени од нејзините рендери со Higgsfield; зградите се нејзини.'}</p>
       </div>
     </section>
     <p class="w-more" aria-hidden="true"><span class="w-more-t"></span><span class="w-more-h">{en ? 'Tap an image to open it' : 'Допри слика за да ја отвориш'}</span></p>
@@ -142,9 +142,11 @@ const moving = en ? 'Camera and light animated from her render.' : 'Камера
   .st-still { margin: 0; }
   .st-still :global(img) { width: 100%; height: auto; display: block; }
   .st-iva .st-still :global(img) { max-width: 420px; }
-  .w-name { font-size: clamp(3.6rem, 1rem + 12vw, 12rem); line-height: .86; letter-spacing: -0.045em; text-transform: uppercase; }
-  .w-lede { font-family: var(--serif); font-size: var(--t-lg); margin-top: 24px; max-width: 30ch; }
-  .w-meta { color: #bfb2a2; letter-spacing: .02em; }
+  .w-name { font-size: clamp(3.6rem, 1rem + 10vw, 10.5rem); line-height: .88; letter-spacing: -0.05em; }
+  .w-name .glow { padding-right: .06em; }
+  .w-lede { font-size: var(--t-lg); line-height: 1.4; margin-top: 24px; max-width: 30ch; color: #d9dbe3; }
+  .w-meta { color: var(--muted); display: flex; gap: 12px; align-items: center; }
+  .w-num { color: #ffb98a; }
   .st-copy .display:not(.w-name) { font-size: var(--t-h1); margin-top: 8px; line-height: .95; }
   .w-sum { font-family: var(--serif); font-size: var(--t-lg); line-height: 1.4; margin-top: 18px; max-width: 32ch; }
   .w-sub { margin-top: 14px; color: #cdbfae; max-width: 40ch; }
